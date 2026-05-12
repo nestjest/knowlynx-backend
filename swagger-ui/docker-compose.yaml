@@ -1,0 +1,14 @@
+services:
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    ports:
+      - "8080:8080"
+    environment:
+      URLS: |
+        [
+        {url: "/swagger/auth.swagger.json", name: "Auth API"}
+        {url: "/swagger/users.swagger.json", name: "Users API"}
+        ]
+    volumes:
+      - ./contracts/openapi:/usr/share/nginx/html/swagger
