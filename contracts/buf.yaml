@@ -1,9 +1,12 @@
-version: v1
-
+version: v2
+modules:
+  - path: proto
+  - path: third_party
+lint:
+  use:
+    - STANDARD
+  ignore:
+    - third_party/google/api
 breaking:
   use:
     - FILE
-
-lint:
-  use:
-    - DEFAULT
