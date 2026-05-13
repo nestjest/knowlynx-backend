@@ -79,12 +79,77 @@ func (Role) EnumDescriptor() ([]byte, []int) {
 	return file_users_v1_users_proto_rawDescGZIP(), []int{0}
 }
 
+// PermissionCode определяет код для прав.
+type PermissionCode int32
+
+const (
+	PermissionCode_PERMISSION_UNSPECIFIED             PermissionCode = 0
+	PermissionCode_PERMISSION_USERS_READ              PermissionCode = 1
+	PermissionCode_PERMISSION_USERS_CREATE            PermissionCode = 2
+	PermissionCode_PERMISSION_USERS_UPDATE            PermissionCode = 3
+	PermissionCode_PERMISSION_USERS_BAN               PermissionCode = 4
+	PermissionCode_PERMISSION_USERS_ACTIVATE          PermissionCode = 5
+	PermissionCode_PERMISSION_USERS_CHANGE_ROLE       PermissionCode = 6
+	PermissionCode_PERMISSION_USERS_ASSIGN_PERMISSION PermissionCode = 7
+)
+
+// Enum value maps for PermissionCode.
+var (
+	PermissionCode_name = map[int32]string{
+		0: "PERMISSION_UNSPECIFIED",
+		1: "PERMISSION_USERS_READ",
+		2: "PERMISSION_USERS_CREATE",
+		3: "PERMISSION_USERS_UPDATE",
+		4: "PERMISSION_USERS_BAN",
+		5: "PERMISSION_USERS_ACTIVATE",
+		6: "PERMISSION_USERS_CHANGE_ROLE",
+		7: "PERMISSION_USERS_ASSIGN_PERMISSION",
+	}
+	PermissionCode_value = map[string]int32{
+		"PERMISSION_UNSPECIFIED":             0,
+		"PERMISSION_USERS_READ":              1,
+		"PERMISSION_USERS_CREATE":            2,
+		"PERMISSION_USERS_UPDATE":            3,
+		"PERMISSION_USERS_BAN":               4,
+		"PERMISSION_USERS_ACTIVATE":          5,
+		"PERMISSION_USERS_CHANGE_ROLE":       6,
+		"PERMISSION_USERS_ASSIGN_PERMISSION": 7,
+	}
+)
+
+func (x PermissionCode) Enum() *PermissionCode {
+	p := new(PermissionCode)
+	*p = x
+	return p
+}
+
+func (x PermissionCode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PermissionCode) Descriptor() protoreflect.EnumDescriptor {
+	return file_users_v1_users_proto_enumTypes[1].Descriptor()
+}
+
+func (PermissionCode) Type() protoreflect.EnumType {
+	return &file_users_v1_users_proto_enumTypes[1]
+}
+
+func (x PermissionCode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PermissionCode.Descriptor instead.
+func (PermissionCode) EnumDescriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{1}
+}
+
 // Permission определяет права пользователя.
 type Permission struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// code код разрешения.
-	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Code PermissionCode `protobuf:"varint,2,opt,name=code,proto3,enum=users.v1.PermissionCode" json:"code,omitempty"`
 	// name название разрешения.
 	Name          string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -128,11 +193,11 @@ func (x *Permission) GetId() string {
 	return ""
 }
 
-func (x *Permission) GetCode() string {
+func (x *Permission) GetCode() PermissionCode {
 	if x != nil {
 		return x.Code
 	}
-	return ""
+	return PermissionCode_PERMISSION_UNSPECIFIED
 }
 
 func (x *Permission) GetName() string {
@@ -149,9 +214,11 @@ type User struct {
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Role          Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=users.v1.Role" json:"role,omitempty"`
 	IsActive      bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Permissions   []*Permission          `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	IsBanned      bool                   `protobuf:"varint,5,opt,name=is_banned,json=isBanned,proto3" json:"is_banned,omitempty"`
+	BanReason     string                 `protobuf:"bytes,6,opt,name=ban_reason,json=banReason,proto3" json:"ban_reason,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Permissions   []*Permission          `protobuf:"bytes,9,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -214,6 +281,20 @@ func (x *User) GetIsActive() bool {
 	return false
 }
 
+func (x *User) GetIsBanned() bool {
+	if x != nil {
+		return x.IsBanned
+	}
+	return false
+}
+
+func (x *User) GetBanReason() string {
+	if x != nil {
+		return x.BanReason
+	}
+	return ""
+}
+
 func (x *User) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
@@ -235,20 +316,122 @@ func (x *User) GetPermissions() []*Permission {
 	return nil
 }
 
-// CreateUserRequest определяет запрос на создание пользователя.
-type CreateUserRequest struct {
+// UserAuthData определяет данные аутентификации пользователя.
+type UserAuthData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	Role          Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=users.v1.Role" json:"role,omitempty"`
-	IsActive      bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	PasswordHash  string                 `protobuf:"bytes,3,opt,name=password_hash,json=passwordHash,proto3" json:"password_hash,omitempty"`
+	Role          Role                   `protobuf:"varint,4,opt,name=role,proto3,enum=users.v1.Role" json:"role,omitempty"`
+	IsActive      bool                   `protobuf:"varint,5,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	IsBanned      bool                   `protobuf:"varint,6,opt,name=is_banned,json=isBanned,proto3" json:"is_banned,omitempty"`
+	BanReason     string                 `protobuf:"bytes,7,opt,name=ban_reason,json=banReason,proto3" json:"ban_reason,omitempty"`
+	Permissions   []PermissionCode       `protobuf:"varint,8,rep,packed,name=permissions,proto3,enum=users.v1.PermissionCode" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *UserAuthData) Reset() {
+	*x = UserAuthData{}
+	mi := &file_users_v1_users_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserAuthData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserAuthData) ProtoMessage() {}
+
+func (x *UserAuthData) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserAuthData.ProtoReflect.Descriptor instead.
+func (*UserAuthData) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *UserAuthData) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UserAuthData) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *UserAuthData) GetPasswordHash() string {
+	if x != nil {
+		return x.PasswordHash
+	}
+	return ""
+}
+
+func (x *UserAuthData) GetRole() Role {
+	if x != nil {
+		return x.Role
+	}
+	return Role_ROLE_UNSPECIFIED
+}
+
+func (x *UserAuthData) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
+func (x *UserAuthData) GetIsBanned() bool {
+	if x != nil {
+		return x.IsBanned
+	}
+	return false
+}
+
+func (x *UserAuthData) GetBanReason() string {
+	if x != nil {
+		return x.BanReason
+	}
+	return ""
+}
+
+func (x *UserAuthData) GetPermissions() []PermissionCode {
+	if x != nil {
+		return x.Permissions
+	}
+	return nil
+}
+
+// CreateUserRequest определяет запрос на создание пользователя.
+type CreateUserRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Username        string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password        string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Role            Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=users.v1.Role" json:"role,omitempty"`
+	IsActive        bool                   `protobuf:"varint,4,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	PermissionCodes []PermissionCode       `protobuf:"varint,5,rep,packed,name=permission_codes,json=permissionCodes,proto3,enum=users.v1.PermissionCode" json:"permission_codes,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
-	mi := &file_users_v1_users_proto_msgTypes[2]
+	mi := &file_users_v1_users_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -260,7 +443,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[2]
+	mi := &file_users_v1_users_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -273,7 +456,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{2}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreateUserRequest) GetUsername() string {
@@ -304,6 +487,13 @@ func (x *CreateUserRequest) GetIsActive() bool {
 	return false
 }
 
+func (x *CreateUserRequest) GetPermissionCodes() []PermissionCode {
+	if x != nil {
+		return x.PermissionCodes
+	}
+	return nil
+}
+
 // CreateUserResponse определяет ответ на запрос на создание пользователя.
 type CreateUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -314,7 +504,7 @@ type CreateUserResponse struct {
 
 func (x *CreateUserResponse) Reset() {
 	*x = CreateUserResponse{}
-	mi := &file_users_v1_users_proto_msgTypes[3]
+	mi := &file_users_v1_users_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -326,7 +516,7 @@ func (x *CreateUserResponse) String() string {
 func (*CreateUserResponse) ProtoMessage() {}
 
 func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[3]
+	mi := &file_users_v1_users_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -339,7 +529,7 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{3}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateUserResponse) GetUser() *User {
@@ -359,7 +549,7 @@ type GetUserRequest struct {
 
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
-	mi := &file_users_v1_users_proto_msgTypes[4]
+	mi := &file_users_v1_users_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -371,7 +561,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[4]
+	mi := &file_users_v1_users_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -384,7 +574,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{4}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetUserRequest) GetId() string {
@@ -392,6 +582,186 @@ func (x *GetUserRequest) GetId() string {
 		return x.Id
 	}
 	return ""
+}
+
+// GetUserAuthDataByIDRequest определяет запрос на получение данных аутентификации пользователя по его ID.
+type GetUserAuthDataByIDRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserAuthDataByIDRequest) Reset() {
+	*x = GetUserAuthDataByIDRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserAuthDataByIDRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserAuthDataByIDRequest) ProtoMessage() {}
+
+func (x *GetUserAuthDataByIDRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserAuthDataByIDRequest.ProtoReflect.Descriptor instead.
+func (*GetUserAuthDataByIDRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetUserAuthDataByIDRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// GetUserAuthDataByIDResponse определяет ответ на запрос на получение данных аутентификации пользователя по его ID.
+type GetUserAuthDataByIDResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *UserAuthData          `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserAuthDataByIDResponse) Reset() {
+	*x = GetUserAuthDataByIDResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserAuthDataByIDResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserAuthDataByIDResponse) ProtoMessage() {}
+
+func (x *GetUserAuthDataByIDResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserAuthDataByIDResponse.ProtoReflect.Descriptor instead.
+func (*GetUserAuthDataByIDResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetUserAuthDataByIDResponse) GetUser() *UserAuthData {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+// GetUserAuthDataByUsernameRequest определяет запрос на получение данных аутентификации пользователя по его имени.
+type GetUserAuthDataByUsernameRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserAuthDataByUsernameRequest) Reset() {
+	*x = GetUserAuthDataByUsernameRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserAuthDataByUsernameRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserAuthDataByUsernameRequest) ProtoMessage() {}
+
+func (x *GetUserAuthDataByUsernameRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserAuthDataByUsernameRequest.ProtoReflect.Descriptor instead.
+func (*GetUserAuthDataByUsernameRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetUserAuthDataByUsernameRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+// GetUserAuthDataByUsernameResponse определяет ответ на запрос на получение данных аутентификации пользователя по его имени.
+type GetUserAuthDataByUsernameResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *UserAuthData          `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserAuthDataByUsernameResponse) Reset() {
+	*x = GetUserAuthDataByUsernameResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserAuthDataByUsernameResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserAuthDataByUsernameResponse) ProtoMessage() {}
+
+func (x *GetUserAuthDataByUsernameResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserAuthDataByUsernameResponse.ProtoReflect.Descriptor instead.
+func (*GetUserAuthDataByUsernameResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetUserAuthDataByUsernameResponse) GetUser() *UserAuthData {
+	if x != nil {
+		return x.User
+	}
+	return nil
 }
 
 // GetUserResponse определяет ответ на запрос на получение пользователя.
@@ -404,7 +774,7 @@ type GetUserResponse struct {
 
 func (x *GetUserResponse) Reset() {
 	*x = GetUserResponse{}
-	mi := &file_users_v1_users_proto_msgTypes[5]
+	mi := &file_users_v1_users_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -416,7 +786,7 @@ func (x *GetUserResponse) String() string {
 func (*GetUserResponse) ProtoMessage() {}
 
 func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[5]
+	mi := &file_users_v1_users_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -429,7 +799,7 @@ func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{5}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetUserResponse) GetUser() *User {
@@ -439,8 +809,8 @@ func (x *GetUserResponse) GetUser() *User {
 	return nil
 }
 
-// ChangePasswordRequest определяет запрос на изменение пароля пользователя.
-type ChangePasswordRequest struct {
+// ChangeMyPasswordRequest определяет запрос на изменение пароля пользователя.
+type ChangeMyPasswordRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	OldPassword   string                 `protobuf:"bytes,2,opt,name=old_password,json=oldPassword,proto3" json:"old_password,omitempty"`
@@ -449,21 +819,21 @@ type ChangePasswordRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ChangePasswordRequest) Reset() {
-	*x = ChangePasswordRequest{}
-	mi := &file_users_v1_users_proto_msgTypes[6]
+func (x *ChangeMyPasswordRequest) Reset() {
+	*x = ChangeMyPasswordRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ChangePasswordRequest) String() string {
+func (x *ChangeMyPasswordRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ChangePasswordRequest) ProtoMessage() {}
+func (*ChangeMyPasswordRequest) ProtoMessage() {}
 
-func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[6]
+func (x *ChangeMyPasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -474,55 +844,55 @@ func (x *ChangePasswordRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ChangePasswordRequest.ProtoReflect.Descriptor instead.
-func (*ChangePasswordRequest) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use ChangeMyPasswordRequest.ProtoReflect.Descriptor instead.
+func (*ChangeMyPasswordRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *ChangePasswordRequest) GetId() string {
+func (x *ChangeMyPasswordRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *ChangePasswordRequest) GetOldPassword() string {
+func (x *ChangeMyPasswordRequest) GetOldPassword() string {
 	if x != nil {
 		return x.OldPassword
 	}
 	return ""
 }
 
-func (x *ChangePasswordRequest) GetNewPassword() string {
+func (x *ChangeMyPasswordRequest) GetNewPassword() string {
 	if x != nil {
 		return x.NewPassword
 	}
 	return ""
 }
 
-// ChangePasswordResponse определяет ответ на запрос на изменение пароля пользователя.
-type ChangePasswordResponse struct {
+// ChangeMyPasswordResponse определяет ответ на запрос на изменение пароля пользователя.
+type ChangeMyPasswordResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ChangePasswordResponse) Reset() {
-	*x = ChangePasswordResponse{}
-	mi := &file_users_v1_users_proto_msgTypes[7]
+func (x *ChangeMyPasswordResponse) Reset() {
+	*x = ChangeMyPasswordResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ChangePasswordResponse) String() string {
+func (x *ChangeMyPasswordResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ChangePasswordResponse) ProtoMessage() {}
+func (*ChangeMyPasswordResponse) ProtoMessage() {}
 
-func (x *ChangePasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[7]
+func (x *ChangeMyPasswordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -533,12 +903,404 @@ func (x *ChangePasswordResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ChangePasswordResponse.ProtoReflect.Descriptor instead.
-func (*ChangePasswordResponse) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use ChangeMyPasswordResponse.ProtoReflect.Descriptor instead.
+func (*ChangeMyPasswordResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *ChangePasswordResponse) GetSuccess() bool {
+func (x *ChangeMyPasswordResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+// AdminChangePasswordRequest определяет запрос на изменение пароля администратора.
+type AdminChangePasswordRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	NewPassword   string                 `protobuf:"bytes,2,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AdminChangePasswordRequest) Reset() {
+	*x = AdminChangePasswordRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdminChangePasswordRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdminChangePasswordRequest) ProtoMessage() {}
+
+func (x *AdminChangePasswordRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdminChangePasswordRequest.ProtoReflect.Descriptor instead.
+func (*AdminChangePasswordRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *AdminChangePasswordRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AdminChangePasswordRequest) GetNewPassword() string {
+	if x != nil {
+		return x.NewPassword
+	}
+	return ""
+}
+
+// AdminChangePasswordResponse определяет ответ на запрос на изменение пароля администратора.
+type AdminChangePasswordResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AdminChangePasswordResponse) Reset() {
+	*x = AdminChangePasswordResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdminChangePasswordResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdminChangePasswordResponse) ProtoMessage() {}
+
+func (x *AdminChangePasswordResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdminChangePasswordResponse.ProtoReflect.Descriptor instead.
+func (*AdminChangePasswordResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *AdminChangePasswordResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+// ChangeRoleRequest определяет запрос на изменение роли пользователя.
+type ChangeRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Role          Role                   `protobuf:"varint,2,opt,name=role,proto3,enum=users.v1.Role" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangeRoleRequest) Reset() {
+	*x = ChangeRoleRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangeRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangeRoleRequest) ProtoMessage() {}
+
+func (x *ChangeRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangeRoleRequest.ProtoReflect.Descriptor instead.
+func (*ChangeRoleRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ChangeRoleRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ChangeRoleRequest) GetRole() Role {
+	if x != nil {
+		return x.Role
+	}
+	return Role_ROLE_UNSPECIFIED
+}
+
+// ChangeRoleResponse определяет ответ на запрос на изменение роли пользователя.
+type ChangeRoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChangeRoleResponse) Reset() {
+	*x = ChangeRoleResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChangeRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChangeRoleResponse) ProtoMessage() {}
+
+func (x *ChangeRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChangeRoleResponse.ProtoReflect.Descriptor instead.
+func (*ChangeRoleResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ChangeRoleResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+// AssignPermissionRequest определяет запрос на назначение прав пользователю.
+type AssignPermissionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Permission    PermissionCode         `protobuf:"varint,2,opt,name=permission,proto3,enum=users.v1.PermissionCode" json:"permission,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssignPermissionRequest) Reset() {
+	*x = AssignPermissionRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssignPermissionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssignPermissionRequest) ProtoMessage() {}
+
+func (x *AssignPermissionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssignPermissionRequest.ProtoReflect.Descriptor instead.
+func (*AssignPermissionRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *AssignPermissionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AssignPermissionRequest) GetPermission() PermissionCode {
+	if x != nil {
+		return x.Permission
+	}
+	return PermissionCode_PERMISSION_UNSPECIFIED
+}
+
+// AssignPermissionResponse определяет ответ на запрос на назначение прав пользователю.
+type AssignPermissionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssignPermissionResponse) Reset() {
+	*x = AssignPermissionResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssignPermissionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssignPermissionResponse) ProtoMessage() {}
+
+func (x *AssignPermissionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssignPermissionResponse.ProtoReflect.Descriptor instead.
+func (*AssignPermissionResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *AssignPermissionResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+// RevokePermissionRequest определяет запрос на отзыв прав пользователю.
+type RevokePermissionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Permission    PermissionCode         `protobuf:"varint,2,opt,name=permission,proto3,enum=users.v1.PermissionCode" json:"permission,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokePermissionRequest) Reset() {
+	*x = RevokePermissionRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokePermissionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokePermissionRequest) ProtoMessage() {}
+
+func (x *RevokePermissionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokePermissionRequest.ProtoReflect.Descriptor instead.
+func (*RevokePermissionRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *RevokePermissionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RevokePermissionRequest) GetPermission() PermissionCode {
+	if x != nil {
+		return x.Permission
+	}
+	return PermissionCode_PERMISSION_UNSPECIFIED
+}
+
+// RevokePermissionResponse определяет ответ на запрос на отзыв прав пользователю.
+type RevokePermissionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokePermissionResponse) Reset() {
+	*x = RevokePermissionResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokePermissionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokePermissionResponse) ProtoMessage() {}
+
+func (x *RevokePermissionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokePermissionResponse.ProtoReflect.Descriptor instead.
+func (*RevokePermissionResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *RevokePermissionResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
@@ -556,7 +1318,7 @@ type UpdateProfileRequest struct {
 
 func (x *UpdateProfileRequest) Reset() {
 	*x = UpdateProfileRequest{}
-	mi := &file_users_v1_users_proto_msgTypes[8]
+	mi := &file_users_v1_users_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -568,7 +1330,7 @@ func (x *UpdateProfileRequest) String() string {
 func (*UpdateProfileRequest) ProtoMessage() {}
 
 func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[8]
+	mi := &file_users_v1_users_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -581,7 +1343,7 @@ func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProfileRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProfileRequest) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{8}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdateProfileRequest) GetId() string {
@@ -608,7 +1370,7 @@ type UpdateProfileResponse struct {
 
 func (x *UpdateProfileResponse) Reset() {
 	*x = UpdateProfileResponse{}
-	mi := &file_users_v1_users_proto_msgTypes[9]
+	mi := &file_users_v1_users_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +1382,7 @@ func (x *UpdateProfileResponse) String() string {
 func (*UpdateProfileResponse) ProtoMessage() {}
 
 func (x *UpdateProfileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[9]
+	mi := &file_users_v1_users_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -633,7 +1395,7 @@ func (x *UpdateProfileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProfileResponse.ProtoReflect.Descriptor instead.
 func (*UpdateProfileResponse) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{9}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateProfileResponse) GetSuccess() bool {
@@ -653,7 +1415,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_users_v1_users_proto_msgTypes[10]
+	mi := &file_users_v1_users_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -665,7 +1427,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[10]
+	mi := &file_users_v1_users_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -678,7 +1440,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{10}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *DeleteUserRequest) GetId() string {
@@ -698,7 +1460,7 @@ type DeleteUserResponse struct {
 
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
-	mi := &file_users_v1_users_proto_msgTypes[11]
+	mi := &file_users_v1_users_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -710,7 +1472,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[11]
+	mi := &file_users_v1_users_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -723,7 +1485,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{11}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *DeleteUserResponse) GetSuccess() bool {
@@ -743,7 +1505,7 @@ type ActivateUserRequest struct {
 
 func (x *ActivateUserRequest) Reset() {
 	*x = ActivateUserRequest{}
-	mi := &file_users_v1_users_proto_msgTypes[12]
+	mi := &file_users_v1_users_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -755,7 +1517,7 @@ func (x *ActivateUserRequest) String() string {
 func (*ActivateUserRequest) ProtoMessage() {}
 
 func (x *ActivateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[12]
+	mi := &file_users_v1_users_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -768,7 +1530,7 @@ func (x *ActivateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivateUserRequest.ProtoReflect.Descriptor instead.
 func (*ActivateUserRequest) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{12}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ActivateUserRequest) GetId() string {
@@ -788,7 +1550,7 @@ type ActivateUserResponse struct {
 
 func (x *ActivateUserResponse) Reset() {
 	*x = ActivateUserResponse{}
-	mi := &file_users_v1_users_proto_msgTypes[13]
+	mi := &file_users_v1_users_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -800,7 +1562,7 @@ func (x *ActivateUserResponse) String() string {
 func (*ActivateUserResponse) ProtoMessage() {}
 
 func (x *ActivateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[13]
+	mi := &file_users_v1_users_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -813,10 +1575,100 @@ func (x *ActivateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivateUserResponse.ProtoReflect.Descriptor instead.
 func (*ActivateUserResponse) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{13}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ActivateUserResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+// DeactivateUserRequest определяет запрос на деактивацию пользователя.
+type DeactivateUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeactivateUserRequest) Reset() {
+	*x = DeactivateUserRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeactivateUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeactivateUserRequest) ProtoMessage() {}
+
+func (x *DeactivateUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeactivateUserRequest.ProtoReflect.Descriptor instead.
+func (*DeactivateUserRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *DeactivateUserRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// DeactivateUserResponse определяет ответ на запрос на деактивацию пользователя.
+type DeactivateUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeactivateUserResponse) Reset() {
+	*x = DeactivateUserResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeactivateUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeactivateUserResponse) ProtoMessage() {}
+
+func (x *DeactivateUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeactivateUserResponse.ProtoReflect.Descriptor instead.
+func (*DeactivateUserResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *DeactivateUserResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
@@ -827,13 +1679,14 @@ func (x *ActivateUserResponse) GetSuccess() bool {
 type BanUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BanUserRequest) Reset() {
 	*x = BanUserRequest{}
-	mi := &file_users_v1_users_proto_msgTypes[14]
+	mi := &file_users_v1_users_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -845,7 +1698,7 @@ func (x *BanUserRequest) String() string {
 func (*BanUserRequest) ProtoMessage() {}
 
 func (x *BanUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[14]
+	mi := &file_users_v1_users_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,7 +1711,7 @@ func (x *BanUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanUserRequest.ProtoReflect.Descriptor instead.
 func (*BanUserRequest) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{14}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *BanUserRequest) GetId() string {
@@ -866,6 +1719,103 @@ func (x *BanUserRequest) GetId() string {
 		return x.Id
 	}
 	return ""
+}
+
+func (x *BanUserRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// UnbanUserRequest определяет запрос на разблокирование пользователя.
+type UnbanUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnbanUserRequest) Reset() {
+	*x = UnbanUserRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnbanUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnbanUserRequest) ProtoMessage() {}
+
+func (x *UnbanUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnbanUserRequest.ProtoReflect.Descriptor instead.
+func (*UnbanUserRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *UnbanUserRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// UnbanUserResponse определяет ответ на запрос на разблокирование пользователя.
+type UnbanUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnbanUserResponse) Reset() {
+	*x = UnbanUserResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnbanUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnbanUserResponse) ProtoMessage() {}
+
+func (x *UnbanUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnbanUserResponse.ProtoReflect.Descriptor instead.
+func (*UnbanUserResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *UnbanUserResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
 }
 
 // BanUserResponse определяет ответ на запрос на блокирование пользователя.
@@ -878,7 +1828,7 @@ type BanUserResponse struct {
 
 func (x *BanUserResponse) Reset() {
 	*x = BanUserResponse{}
-	mi := &file_users_v1_users_proto_msgTypes[15]
+	mi := &file_users_v1_users_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -890,7 +1840,7 @@ func (x *BanUserResponse) String() string {
 func (*BanUserResponse) ProtoMessage() {}
 
 func (x *BanUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_users_v1_users_proto_msgTypes[15]
+	mi := &file_users_v1_users_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -903,7 +1853,7 @@ func (x *BanUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BanUserResponse.ProtoReflect.Descriptor instead.
 func (*BanUserResponse) Descriptor() ([]byte, []int) {
-	return file_users_v1_users_proto_rawDescGZIP(), []int{15}
+	return file_users_v1_users_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *BanUserResponse) GetSuccess() bool {
@@ -913,42 +1863,210 @@ func (x *BanUserResponse) GetSuccess() bool {
 	return false
 }
 
+// ListUsersRequest определяет запрос на получение списка пользователей.
+type ListUsersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	Role          Role                   `protobuf:"varint,3,opt,name=role,proto3,enum=users.v1.Role" json:"role,omitempty"`
+	OnlyActive    bool                   `protobuf:"varint,4,opt,name=only_active,json=onlyActive,proto3" json:"only_active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsersRequest) Reset() {
+	*x = ListUsersRequest{}
+	mi := &file_users_v1_users_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsersRequest) ProtoMessage() {}
+
+func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
+func (*ListUsersRequest) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ListUsersRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListUsersRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *ListUsersRequest) GetRole() Role {
+	if x != nil {
+		return x.Role
+	}
+	return Role_ROLE_UNSPECIFIED
+}
+
+func (x *ListUsersRequest) GetOnlyActive() bool {
+	if x != nil {
+		return x.OnlyActive
+	}
+	return false
+}
+
+// ListUsersResponse определяет ответ на запрос на получение списка пользователей.
+type ListUsersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Users         []*User                `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsersResponse) Reset() {
+	*x = ListUsersResponse{}
+	mi := &file_users_v1_users_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsersResponse) ProtoMessage() {}
+
+func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_users_v1_users_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
+func (*ListUsersResponse) Descriptor() ([]byte, []int) {
+	return file_users_v1_users_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ListUsersResponse) GetUsers() []*User {
+	if x != nil {
+		return x.Users
+	}
+	return nil
+}
+
+func (x *ListUsersResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
 var File_users_v1_users_proto protoreflect.FileDescriptor
 
 const file_users_v1_users_proto_rawDesc = "" +
 	"\n" +
-	"\x14users/v1/users.proto\x12\busers.v1\x1a\x1cgoogle/api/annotations.proto\"D\n" +
+	"\x14users/v1/users.proto\x12\busers.v1\x1a\x1cgoogle/api/annotations.proto\"^\n" +
 	"\n" +
 	"Permission\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"\xe9\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
+	"\x04code\x18\x02 \x01(\x0e2\x18.users.v1.PermissionCodeR\x04code\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"\xa5\x02\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\"\n" +
 	"\x04role\x18\x03 \x01(\x0e2\x0e.users.v1.RoleR\x04role\x12\x1b\n" +
-	"\tis_active\x18\x04 \x01(\bR\bisActive\x12\x1d\n" +
+	"\tis_active\x18\x04 \x01(\bR\bisActive\x12\x1b\n" +
+	"\tis_banned\x18\x05 \x01(\bR\bisBanned\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"ban_reason\x18\x06 \x01(\tR\tbanReason\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x126\n" +
-	"\vpermissions\x18\a \x03(\v2\x14.users.v1.PermissionR\vpermissions\"\x8c\x01\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\x126\n" +
+	"\vpermissions\x18\t \x03(\v2\x14.users.v1.PermissionR\vpermissions\"\x98\x02\n" +
+	"\fUserAuthData\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12#\n" +
+	"\rpassword_hash\x18\x03 \x01(\tR\fpasswordHash\x12\"\n" +
+	"\x04role\x18\x04 \x01(\x0e2\x0e.users.v1.RoleR\x04role\x12\x1b\n" +
+	"\tis_active\x18\x05 \x01(\bR\bisActive\x12\x1b\n" +
+	"\tis_banned\x18\x06 \x01(\bR\bisBanned\x12\x1d\n" +
+	"\n" +
+	"ban_reason\x18\a \x01(\tR\tbanReason\x12:\n" +
+	"\vpermissions\x18\b \x03(\x0e2\x18.users.v1.PermissionCodeR\vpermissions\"\xd1\x01\n" +
 	"\x11CreateUserRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\"\n" +
 	"\x04role\x18\x03 \x01(\x0e2\x0e.users.v1.RoleR\x04role\x12\x1b\n" +
-	"\tis_active\x18\x04 \x01(\bR\bisActive\"8\n" +
+	"\tis_active\x18\x04 \x01(\bR\bisActive\x12C\n" +
+	"\x10permission_codes\x18\x05 \x03(\x0e2\x18.users.v1.PermissionCodeR\x0fpermissionCodes\"8\n" +
 	"\x12CreateUserResponse\x12\"\n" +
 	"\x04user\x18\x01 \x01(\v2\x0e.users.v1.UserR\x04user\" \n" +
 	"\x0eGetUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"5\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\",\n" +
+	"\x1aGetUserAuthDataByIDRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"I\n" +
+	"\x1bGetUserAuthDataByIDResponse\x12*\n" +
+	"\x04user\x18\x01 \x01(\v2\x16.users.v1.UserAuthDataR\x04user\">\n" +
+	" GetUserAuthDataByUsernameRequest\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\"O\n" +
+	"!GetUserAuthDataByUsernameResponse\x12*\n" +
+	"\x04user\x18\x01 \x01(\v2\x16.users.v1.UserAuthDataR\x04user\"5\n" +
 	"\x0fGetUserResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.users.v1.UserR\x04user\"m\n" +
-	"\x15ChangePasswordRequest\x12\x0e\n" +
+	"\x04user\x18\x01 \x01(\v2\x0e.users.v1.UserR\x04user\"o\n" +
+	"\x17ChangeMyPasswordRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fold_password\x18\x02 \x01(\tR\voldPassword\x12!\n" +
-	"\fnew_password\x18\x03 \x01(\tR\vnewPassword\"2\n" +
-	"\x16ChangePasswordResponse\x12\x18\n" +
+	"\fnew_password\x18\x03 \x01(\tR\vnewPassword\"4\n" +
+	"\x18ChangeMyPasswordResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"O\n" +
+	"\x1aAdminChangePasswordRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\fnew_password\x18\x02 \x01(\tR\vnewPassword\"7\n" +
+	"\x1bAdminChangePasswordResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"G\n" +
+	"\x11ChangeRoleRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
+	"\x04role\x18\x02 \x01(\x0e2\x0e.users.v1.RoleR\x04role\".\n" +
+	"\x12ChangeRoleResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"c\n" +
+	"\x17AssignPermissionRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x128\n" +
+	"\n" +
+	"permission\x18\x02 \x01(\x0e2\x18.users.v1.PermissionCodeR\n" +
+	"permission\"4\n" +
+	"\x18AssignPermissionResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"c\n" +
+	"\x17RevokePermissionRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x128\n" +
+	"\n" +
+	"permission\x18\x02 \x01(\x0e2\x18.users.v1.PermissionCodeR\n" +
+	"permission\"4\n" +
+	"\x18RevokePermissionResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"B\n" +
 	"\x14UpdateProfileRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
@@ -962,27 +2080,64 @@ const file_users_v1_users_proto_rawDesc = "" +
 	"\x13ActivateUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"0\n" +
 	"\x14ActivateUserResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\" \n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"'\n" +
+	"\x15DeactivateUserRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"2\n" +
+	"\x16DeactivateUserResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"8\n" +
 	"\x0eBanUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"+\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"\"\n" +
+	"\x10UnbanUserRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"-\n" +
+	"\x11UnbanUserResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"+\n" +
 	"\x0fBanUserResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess*P\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"\x85\x01\n" +
+	"\x10ListUsersRequest\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\x12\"\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x0e.users.v1.RoleR\x04role\x12\x1f\n" +
+	"\vonly_active\x18\x04 \x01(\bR\n" +
+	"onlyActive\"O\n" +
+	"\x11ListUsersResponse\x12$\n" +
+	"\x05users\x18\x01 \x03(\v2\x0e.users.v1.UserR\x05users\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total*P\n" +
 	"\x04Role\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fROLE_STUDENT\x10\x01\x12\x10\n" +
 	"\fROLE_TEACHER\x10\x02\x12\x0e\n" +
 	"\n" +
-	"ROLE_ADMIN\x10\x032\xb4\x06\n" +
-	"\fUsersService\x12g\n" +
+	"ROLE_ADMIN\x10\x03*\x84\x02\n" +
+	"\x0ePermissionCode\x12\x1a\n" +
+	"\x16PERMISSION_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15PERMISSION_USERS_READ\x10\x01\x12\x1b\n" +
+	"\x17PERMISSION_USERS_CREATE\x10\x02\x12\x1b\n" +
+	"\x17PERMISSION_USERS_UPDATE\x10\x03\x12\x18\n" +
+	"\x14PERMISSION_USERS_BAN\x10\x04\x12\x1d\n" +
+	"\x19PERMISSION_USERS_ACTIVATE\x10\x05\x12 \n" +
+	"\x1cPERMISSION_USERS_CHANGE_ROLE\x10\x06\x12&\n" +
+	"\"PERMISSION_USERS_ASSIGN_PERMISSION\x10\a2\xcc\x0e\n" +
+	"\fUsersService\x12a\n" +
 	"\n" +
-	"CreateUser\x12\x1b.users.v1.CreateUserRequest\x1a\x1c.users.v1.CreateUserResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/users/v1/users\x12`\n" +
-	"\aGetUser\x12\x18.users.v1.GetUserRequest\x1a\x19.users.v1.GetUserResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/users/v1/users/{id}\x12\x88\x01\n" +
-	"\x0eChangePassword\x12\x1f.users.v1.ChangePasswordRequest\x1a .users.v1.ChangePasswordResponse\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/api/users/v1/users/{id}/change-password\x12}\n" +
-	"\rUpdateProfile\x12\x1e.users.v1.UpdateProfileRequest\x1a\x1f.users.v1.UpdateProfileResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\x1a /api/users/v1/users/{id}/profile\x12i\n" +
+	"CreateUser\x12\x1b.users.v1.CreateUserRequest\x1a\x1c.users.v1.CreateUserResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/users\x12Z\n" +
+	"\aGetUser\x12\x18.users.v1.GetUserRequest\x1a\x19.users.v1.GetUserResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/users/{id}\x12t\n" +
+	"\x19GetUserAuthDataByUsername\x12*.users.v1.GetUserAuthDataByUsernameRequest\x1a+.users.v1.GetUserAuthDataByUsernameResponse\x12b\n" +
+	"\x13GetUserAuthDataByID\x12$.users.v1.GetUserAuthDataByIDRequest\x1a%.users.v1.GetUserAuthDataByIDResponse\x12\x86\x01\n" +
+	"\x10ChangeMyPassword\x12!.users.v1.ChangeMyPasswordRequest\x1a\".users.v1.ChangeMyPasswordResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/users/me/change-password\x12\x91\x01\n" +
+	"\x13AdminChangePassword\x12$.users.v1.AdminChangePasswordRequest\x1a%.users.v1.AdminChangePasswordResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/users/{id}/change-password\x12k\n" +
 	"\n" +
-	"DeleteUser\x12\x1b.users.v1.DeleteUserRequest\x1a\x1c.users.v1.DeleteUserResponse\" \x82\xd3\xe4\x93\x02\x1a*\x18/api/users/v1/users/{id}\x12{\n" +
-	"\fActivateUser\x12\x1d.users.v1.ActivateUserRequest\x1a\x1e.users.v1.ActivateUserResponse\",\x82\xd3\xe4\x93\x02&:\x01*\"!/api/users/v1/users/{id}/activate\x12g\n" +
-	"\aBanUser\x12\x18.users.v1.BanUserRequest\x1a\x19.users.v1.BanUserResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/users/v1/users/{id}/banB\x84\x01\n" +
+	"ChangeRole\x12\x1b.users.v1.ChangeRoleRequest\x1a\x1c.users.v1.ChangeRoleResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/users/{id}/role\x12\x8b\x01\n" +
+	"\x10AssignPermission\x12!.users.v1.AssignPermissionRequest\x1a\".users.v1.AssignPermissionResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/users/{id}/permissions/assign\x12\x8b\x01\n" +
+	"\x10RevokePermission\x12!.users.v1.RevokePermissionRequest\x1a\".users.v1.RevokePermissionResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/users/{id}/permissions/revoke\x12w\n" +
+	"\rUpdateProfile\x12\x1e.users.v1.UpdateProfileRequest\x1a\x1f.users.v1.UpdateProfileResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/v1/users/{id}/profile\x12c\n" +
+	"\n" +
+	"DeleteUser\x12\x1b.users.v1.DeleteUserRequest\x1a\x1c.users.v1.DeleteUserResponse\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/users/{id}\x12u\n" +
+	"\fActivateUser\x12\x1d.users.v1.ActivateUserRequest\x1a\x1e.users.v1.ActivateUserResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/users/{id}/activate\x12}\n" +
+	"\x0eDeactivateUser\x12\x1f.users.v1.DeactivateUserRequest\x1a .users.v1.DeactivateUserResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/users/{id}/deactivate\x12a\n" +
+	"\aBanUser\x12\x18.users.v1.BanUserRequest\x1a\x19.users.v1.BanUserResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/v1/users/{id}/ban\x12i\n" +
+	"\tUnbanUser\x12\x1a.users.v1.UnbanUserRequest\x1a\x1b.users.v1.UnbanUserResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/api/v1/users/{id}/unban\x12[\n" +
+	"\tListUsers\x12\x1a.users.v1.ListUsersRequest\x1a\x1b.users.v1.ListUsersResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/usersB\x84\x01\n" +
 	"\fcom.users.v1B\n" +
 	"UsersProtoP\x01Z'contracts/gen/go/proto/users/v1;usersv1\xa2\x02\x03UXX\xaa\x02\bUsers.V1\xca\x02\bUsers\\V1\xe2\x02\x14Users\\V1\\GPBMetadata\xea\x02\tUsers::V1b\x06proto3"
 
@@ -998,52 +2153,101 @@ func file_users_v1_users_proto_rawDescGZIP() []byte {
 	return file_users_v1_users_proto_rawDescData
 }
 
-var file_users_v1_users_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_users_v1_users_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_users_v1_users_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_users_v1_users_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_users_v1_users_proto_goTypes = []any{
-	(Role)(0),                      // 0: users.v1.Role
-	(*Permission)(nil),             // 1: users.v1.Permission
-	(*User)(nil),                   // 2: users.v1.User
-	(*CreateUserRequest)(nil),      // 3: users.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),     // 4: users.v1.CreateUserResponse
-	(*GetUserRequest)(nil),         // 5: users.v1.GetUserRequest
-	(*GetUserResponse)(nil),        // 6: users.v1.GetUserResponse
-	(*ChangePasswordRequest)(nil),  // 7: users.v1.ChangePasswordRequest
-	(*ChangePasswordResponse)(nil), // 8: users.v1.ChangePasswordResponse
-	(*UpdateProfileRequest)(nil),   // 9: users.v1.UpdateProfileRequest
-	(*UpdateProfileResponse)(nil),  // 10: users.v1.UpdateProfileResponse
-	(*DeleteUserRequest)(nil),      // 11: users.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),     // 12: users.v1.DeleteUserResponse
-	(*ActivateUserRequest)(nil),    // 13: users.v1.ActivateUserRequest
-	(*ActivateUserResponse)(nil),   // 14: users.v1.ActivateUserResponse
-	(*BanUserRequest)(nil),         // 15: users.v1.BanUserRequest
-	(*BanUserResponse)(nil),        // 16: users.v1.BanUserResponse
+	(Role)(0),                                 // 0: users.v1.Role
+	(PermissionCode)(0),                       // 1: users.v1.PermissionCode
+	(*Permission)(nil),                        // 2: users.v1.Permission
+	(*User)(nil),                              // 3: users.v1.User
+	(*UserAuthData)(nil),                      // 4: users.v1.UserAuthData
+	(*CreateUserRequest)(nil),                 // 5: users.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),                // 6: users.v1.CreateUserResponse
+	(*GetUserRequest)(nil),                    // 7: users.v1.GetUserRequest
+	(*GetUserAuthDataByIDRequest)(nil),        // 8: users.v1.GetUserAuthDataByIDRequest
+	(*GetUserAuthDataByIDResponse)(nil),       // 9: users.v1.GetUserAuthDataByIDResponse
+	(*GetUserAuthDataByUsernameRequest)(nil),  // 10: users.v1.GetUserAuthDataByUsernameRequest
+	(*GetUserAuthDataByUsernameResponse)(nil), // 11: users.v1.GetUserAuthDataByUsernameResponse
+	(*GetUserResponse)(nil),                   // 12: users.v1.GetUserResponse
+	(*ChangeMyPasswordRequest)(nil),           // 13: users.v1.ChangeMyPasswordRequest
+	(*ChangeMyPasswordResponse)(nil),          // 14: users.v1.ChangeMyPasswordResponse
+	(*AdminChangePasswordRequest)(nil),        // 15: users.v1.AdminChangePasswordRequest
+	(*AdminChangePasswordResponse)(nil),       // 16: users.v1.AdminChangePasswordResponse
+	(*ChangeRoleRequest)(nil),                 // 17: users.v1.ChangeRoleRequest
+	(*ChangeRoleResponse)(nil),                // 18: users.v1.ChangeRoleResponse
+	(*AssignPermissionRequest)(nil),           // 19: users.v1.AssignPermissionRequest
+	(*AssignPermissionResponse)(nil),          // 20: users.v1.AssignPermissionResponse
+	(*RevokePermissionRequest)(nil),           // 21: users.v1.RevokePermissionRequest
+	(*RevokePermissionResponse)(nil),          // 22: users.v1.RevokePermissionResponse
+	(*UpdateProfileRequest)(nil),              // 23: users.v1.UpdateProfileRequest
+	(*UpdateProfileResponse)(nil),             // 24: users.v1.UpdateProfileResponse
+	(*DeleteUserRequest)(nil),                 // 25: users.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),                // 26: users.v1.DeleteUserResponse
+	(*ActivateUserRequest)(nil),               // 27: users.v1.ActivateUserRequest
+	(*ActivateUserResponse)(nil),              // 28: users.v1.ActivateUserResponse
+	(*DeactivateUserRequest)(nil),             // 29: users.v1.DeactivateUserRequest
+	(*DeactivateUserResponse)(nil),            // 30: users.v1.DeactivateUserResponse
+	(*BanUserRequest)(nil),                    // 31: users.v1.BanUserRequest
+	(*UnbanUserRequest)(nil),                  // 32: users.v1.UnbanUserRequest
+	(*UnbanUserResponse)(nil),                 // 33: users.v1.UnbanUserResponse
+	(*BanUserResponse)(nil),                   // 34: users.v1.BanUserResponse
+	(*ListUsersRequest)(nil),                  // 35: users.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),                 // 36: users.v1.ListUsersResponse
 }
 var file_users_v1_users_proto_depIdxs = []int32{
-	0,  // 0: users.v1.User.role:type_name -> users.v1.Role
-	1,  // 1: users.v1.User.permissions:type_name -> users.v1.Permission
-	0,  // 2: users.v1.CreateUserRequest.role:type_name -> users.v1.Role
-	2,  // 3: users.v1.CreateUserResponse.user:type_name -> users.v1.User
-	2,  // 4: users.v1.GetUserResponse.user:type_name -> users.v1.User
-	3,  // 5: users.v1.UsersService.CreateUser:input_type -> users.v1.CreateUserRequest
-	5,  // 6: users.v1.UsersService.GetUser:input_type -> users.v1.GetUserRequest
-	7,  // 7: users.v1.UsersService.ChangePassword:input_type -> users.v1.ChangePasswordRequest
-	9,  // 8: users.v1.UsersService.UpdateProfile:input_type -> users.v1.UpdateProfileRequest
-	11, // 9: users.v1.UsersService.DeleteUser:input_type -> users.v1.DeleteUserRequest
-	13, // 10: users.v1.UsersService.ActivateUser:input_type -> users.v1.ActivateUserRequest
-	15, // 11: users.v1.UsersService.BanUser:input_type -> users.v1.BanUserRequest
-	4,  // 12: users.v1.UsersService.CreateUser:output_type -> users.v1.CreateUserResponse
-	6,  // 13: users.v1.UsersService.GetUser:output_type -> users.v1.GetUserResponse
-	8,  // 14: users.v1.UsersService.ChangePassword:output_type -> users.v1.ChangePasswordResponse
-	10, // 15: users.v1.UsersService.UpdateProfile:output_type -> users.v1.UpdateProfileResponse
-	12, // 16: users.v1.UsersService.DeleteUser:output_type -> users.v1.DeleteUserResponse
-	14, // 17: users.v1.UsersService.ActivateUser:output_type -> users.v1.ActivateUserResponse
-	16, // 18: users.v1.UsersService.BanUser:output_type -> users.v1.BanUserResponse
-	12, // [12:19] is the sub-list for method output_type
-	5,  // [5:12] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	1,  // 0: users.v1.Permission.code:type_name -> users.v1.PermissionCode
+	0,  // 1: users.v1.User.role:type_name -> users.v1.Role
+	2,  // 2: users.v1.User.permissions:type_name -> users.v1.Permission
+	0,  // 3: users.v1.UserAuthData.role:type_name -> users.v1.Role
+	1,  // 4: users.v1.UserAuthData.permissions:type_name -> users.v1.PermissionCode
+	0,  // 5: users.v1.CreateUserRequest.role:type_name -> users.v1.Role
+	1,  // 6: users.v1.CreateUserRequest.permission_codes:type_name -> users.v1.PermissionCode
+	3,  // 7: users.v1.CreateUserResponse.user:type_name -> users.v1.User
+	4,  // 8: users.v1.GetUserAuthDataByIDResponse.user:type_name -> users.v1.UserAuthData
+	4,  // 9: users.v1.GetUserAuthDataByUsernameResponse.user:type_name -> users.v1.UserAuthData
+	3,  // 10: users.v1.GetUserResponse.user:type_name -> users.v1.User
+	0,  // 11: users.v1.ChangeRoleRequest.role:type_name -> users.v1.Role
+	1,  // 12: users.v1.AssignPermissionRequest.permission:type_name -> users.v1.PermissionCode
+	1,  // 13: users.v1.RevokePermissionRequest.permission:type_name -> users.v1.PermissionCode
+	0,  // 14: users.v1.ListUsersRequest.role:type_name -> users.v1.Role
+	3,  // 15: users.v1.ListUsersResponse.users:type_name -> users.v1.User
+	5,  // 16: users.v1.UsersService.CreateUser:input_type -> users.v1.CreateUserRequest
+	7,  // 17: users.v1.UsersService.GetUser:input_type -> users.v1.GetUserRequest
+	10, // 18: users.v1.UsersService.GetUserAuthDataByUsername:input_type -> users.v1.GetUserAuthDataByUsernameRequest
+	8,  // 19: users.v1.UsersService.GetUserAuthDataByID:input_type -> users.v1.GetUserAuthDataByIDRequest
+	13, // 20: users.v1.UsersService.ChangeMyPassword:input_type -> users.v1.ChangeMyPasswordRequest
+	15, // 21: users.v1.UsersService.AdminChangePassword:input_type -> users.v1.AdminChangePasswordRequest
+	17, // 22: users.v1.UsersService.ChangeRole:input_type -> users.v1.ChangeRoleRequest
+	19, // 23: users.v1.UsersService.AssignPermission:input_type -> users.v1.AssignPermissionRequest
+	21, // 24: users.v1.UsersService.RevokePermission:input_type -> users.v1.RevokePermissionRequest
+	23, // 25: users.v1.UsersService.UpdateProfile:input_type -> users.v1.UpdateProfileRequest
+	25, // 26: users.v1.UsersService.DeleteUser:input_type -> users.v1.DeleteUserRequest
+	27, // 27: users.v1.UsersService.ActivateUser:input_type -> users.v1.ActivateUserRequest
+	29, // 28: users.v1.UsersService.DeactivateUser:input_type -> users.v1.DeactivateUserRequest
+	31, // 29: users.v1.UsersService.BanUser:input_type -> users.v1.BanUserRequest
+	32, // 30: users.v1.UsersService.UnbanUser:input_type -> users.v1.UnbanUserRequest
+	35, // 31: users.v1.UsersService.ListUsers:input_type -> users.v1.ListUsersRequest
+	6,  // 32: users.v1.UsersService.CreateUser:output_type -> users.v1.CreateUserResponse
+	12, // 33: users.v1.UsersService.GetUser:output_type -> users.v1.GetUserResponse
+	11, // 34: users.v1.UsersService.GetUserAuthDataByUsername:output_type -> users.v1.GetUserAuthDataByUsernameResponse
+	9,  // 35: users.v1.UsersService.GetUserAuthDataByID:output_type -> users.v1.GetUserAuthDataByIDResponse
+	14, // 36: users.v1.UsersService.ChangeMyPassword:output_type -> users.v1.ChangeMyPasswordResponse
+	16, // 37: users.v1.UsersService.AdminChangePassword:output_type -> users.v1.AdminChangePasswordResponse
+	18, // 38: users.v1.UsersService.ChangeRole:output_type -> users.v1.ChangeRoleResponse
+	20, // 39: users.v1.UsersService.AssignPermission:output_type -> users.v1.AssignPermissionResponse
+	22, // 40: users.v1.UsersService.RevokePermission:output_type -> users.v1.RevokePermissionResponse
+	24, // 41: users.v1.UsersService.UpdateProfile:output_type -> users.v1.UpdateProfileResponse
+	26, // 42: users.v1.UsersService.DeleteUser:output_type -> users.v1.DeleteUserResponse
+	28, // 43: users.v1.UsersService.ActivateUser:output_type -> users.v1.ActivateUserResponse
+	30, // 44: users.v1.UsersService.DeactivateUser:output_type -> users.v1.DeactivateUserResponse
+	34, // 45: users.v1.UsersService.BanUser:output_type -> users.v1.BanUserResponse
+	33, // 46: users.v1.UsersService.UnbanUser:output_type -> users.v1.UnbanUserResponse
+	36, // 47: users.v1.UsersService.ListUsers:output_type -> users.v1.ListUsersResponse
+	32, // [32:48] is the sub-list for method output_type
+	16, // [16:32] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_users_v1_users_proto_init() }
@@ -1056,8 +2260,8 @@ func file_users_v1_users_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_users_v1_users_proto_rawDesc), len(file_users_v1_users_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   16,
+			NumEnums:      2,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

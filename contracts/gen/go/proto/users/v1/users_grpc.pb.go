@@ -19,13 +19,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UsersService_CreateUser_FullMethodName     = "/users.v1.UsersService/CreateUser"
-	UsersService_GetUser_FullMethodName        = "/users.v1.UsersService/GetUser"
-	UsersService_ChangePassword_FullMethodName = "/users.v1.UsersService/ChangePassword"
-	UsersService_UpdateProfile_FullMethodName  = "/users.v1.UsersService/UpdateProfile"
-	UsersService_DeleteUser_FullMethodName     = "/users.v1.UsersService/DeleteUser"
-	UsersService_ActivateUser_FullMethodName   = "/users.v1.UsersService/ActivateUser"
-	UsersService_BanUser_FullMethodName        = "/users.v1.UsersService/BanUser"
+	UsersService_CreateUser_FullMethodName                = "/users.v1.UsersService/CreateUser"
+	UsersService_GetUser_FullMethodName                   = "/users.v1.UsersService/GetUser"
+	UsersService_GetUserAuthDataByUsername_FullMethodName = "/users.v1.UsersService/GetUserAuthDataByUsername"
+	UsersService_GetUserAuthDataByID_FullMethodName       = "/users.v1.UsersService/GetUserAuthDataByID"
+	UsersService_ChangeMyPassword_FullMethodName          = "/users.v1.UsersService/ChangeMyPassword"
+	UsersService_AdminChangePassword_FullMethodName       = "/users.v1.UsersService/AdminChangePassword"
+	UsersService_ChangeRole_FullMethodName                = "/users.v1.UsersService/ChangeRole"
+	UsersService_AssignPermission_FullMethodName          = "/users.v1.UsersService/AssignPermission"
+	UsersService_RevokePermission_FullMethodName          = "/users.v1.UsersService/RevokePermission"
+	UsersService_UpdateProfile_FullMethodName             = "/users.v1.UsersService/UpdateProfile"
+	UsersService_DeleteUser_FullMethodName                = "/users.v1.UsersService/DeleteUser"
+	UsersService_ActivateUser_FullMethodName              = "/users.v1.UsersService/ActivateUser"
+	UsersService_DeactivateUser_FullMethodName            = "/users.v1.UsersService/DeactivateUser"
+	UsersService_BanUser_FullMethodName                   = "/users.v1.UsersService/BanUser"
+	UsersService_UnbanUser_FullMethodName                 = "/users.v1.UsersService/UnbanUser"
+	UsersService_ListUsers_FullMethodName                 = "/users.v1.UsersService/ListUsers"
 )
 
 // UsersServiceClient is the client API for UsersService service.
@@ -38,16 +47,34 @@ type UsersServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	// GetUser возвращает пользователя по его ID.
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
-	// ChangePassword изменяет пароль пользователя.
-	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
+	// GetUserByUsername возвращает данные аутентификации пользователя по его имени.
+	GetUserAuthDataByUsername(ctx context.Context, in *GetUserAuthDataByUsernameRequest, opts ...grpc.CallOption) (*GetUserAuthDataByUsernameResponse, error)
+	// GetUserAuthDataByID возвращает данные аутентификации пользователя по его ID.
+	GetUserAuthDataByID(ctx context.Context, in *GetUserAuthDataByIDRequest, opts ...grpc.CallOption) (*GetUserAuthDataByIDResponse, error)
+	// ChangeMyPassword изменяет пароль пользователя.
+	ChangeMyPassword(ctx context.Context, in *ChangeMyPasswordRequest, opts ...grpc.CallOption) (*ChangeMyPasswordResponse, error)
+	// AdminChangePassword изменяет пароль пользователя администратором.
+	AdminChangePassword(ctx context.Context, in *AdminChangePasswordRequest, opts ...grpc.CallOption) (*AdminChangePasswordResponse, error)
+	// ChangeRole изменяет роль пользователя.
+	ChangeRole(ctx context.Context, in *ChangeRoleRequest, opts ...grpc.CallOption) (*ChangeRoleResponse, error)
+	// AssignPermission присваивает разрешение пользователю.
+	AssignPermission(ctx context.Context, in *AssignPermissionRequest, opts ...grpc.CallOption) (*AssignPermissionResponse, error)
+	// RevokePermission отзывает разрешение пользователю.
+	RevokePermission(ctx context.Context, in *RevokePermissionRequest, opts ...grpc.CallOption) (*RevokePermissionResponse, error)
 	// UpdateProfile обновляет профиль пользователя.
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*UpdateProfileResponse, error)
 	// DeleteUser удаляет пользователя по его ID.
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	// ActivateUser активирует пользователя по его ID.
 	ActivateUser(ctx context.Context, in *ActivateUserRequest, opts ...grpc.CallOption) (*ActivateUserResponse, error)
+	// DeactivateUser деактивирует пользователя по его ID.
+	DeactivateUser(ctx context.Context, in *DeactivateUserRequest, opts ...grpc.CallOption) (*DeactivateUserResponse, error)
 	// BanUser блокирует пользователя по его ID.
 	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error)
+	// UnbanUser разблокирует пользователя по его ID.
+	UnbanUser(ctx context.Context, in *UnbanUserRequest, opts ...grpc.CallOption) (*UnbanUserResponse, error)
+	// ListUsers возвращает список всех пользователей.
+	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 }
 
 type usersServiceClient struct {
@@ -78,10 +105,70 @@ func (c *usersServiceClient) GetUser(ctx context.Context, in *GetUserRequest, op
 	return out, nil
 }
 
-func (c *usersServiceClient) ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error) {
+func (c *usersServiceClient) GetUserAuthDataByUsername(ctx context.Context, in *GetUserAuthDataByUsernameRequest, opts ...grpc.CallOption) (*GetUserAuthDataByUsernameResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChangePasswordResponse)
-	err := c.cc.Invoke(ctx, UsersService_ChangePassword_FullMethodName, in, out, cOpts...)
+	out := new(GetUserAuthDataByUsernameResponse)
+	err := c.cc.Invoke(ctx, UsersService_GetUserAuthDataByUsername_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersServiceClient) GetUserAuthDataByID(ctx context.Context, in *GetUserAuthDataByIDRequest, opts ...grpc.CallOption) (*GetUserAuthDataByIDResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserAuthDataByIDResponse)
+	err := c.cc.Invoke(ctx, UsersService_GetUserAuthDataByID_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersServiceClient) ChangeMyPassword(ctx context.Context, in *ChangeMyPasswordRequest, opts ...grpc.CallOption) (*ChangeMyPasswordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ChangeMyPasswordResponse)
+	err := c.cc.Invoke(ctx, UsersService_ChangeMyPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersServiceClient) AdminChangePassword(ctx context.Context, in *AdminChangePasswordRequest, opts ...grpc.CallOption) (*AdminChangePasswordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminChangePasswordResponse)
+	err := c.cc.Invoke(ctx, UsersService_AdminChangePassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersServiceClient) ChangeRole(ctx context.Context, in *ChangeRoleRequest, opts ...grpc.CallOption) (*ChangeRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ChangeRoleResponse)
+	err := c.cc.Invoke(ctx, UsersService_ChangeRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersServiceClient) AssignPermission(ctx context.Context, in *AssignPermissionRequest, opts ...grpc.CallOption) (*AssignPermissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssignPermissionResponse)
+	err := c.cc.Invoke(ctx, UsersService_AssignPermission_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersServiceClient) RevokePermission(ctx context.Context, in *RevokePermissionRequest, opts ...grpc.CallOption) (*RevokePermissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokePermissionResponse)
+	err := c.cc.Invoke(ctx, UsersService_RevokePermission_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,10 +205,40 @@ func (c *usersServiceClient) ActivateUser(ctx context.Context, in *ActivateUserR
 	return out, nil
 }
 
+func (c *usersServiceClient) DeactivateUser(ctx context.Context, in *DeactivateUserRequest, opts ...grpc.CallOption) (*DeactivateUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeactivateUserResponse)
+	err := c.cc.Invoke(ctx, UsersService_DeactivateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *usersServiceClient) BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BanUserResponse)
 	err := c.cc.Invoke(ctx, UsersService_BanUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersServiceClient) UnbanUser(ctx context.Context, in *UnbanUserRequest, opts ...grpc.CallOption) (*UnbanUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnbanUserResponse)
+	err := c.cc.Invoke(ctx, UsersService_UnbanUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUsersResponse)
+	err := c.cc.Invoke(ctx, UsersService_ListUsers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,16 +255,34 @@ type UsersServiceServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	// GetUser возвращает пользователя по его ID.
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
-	// ChangePassword изменяет пароль пользователя.
-	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
+	// GetUserByUsername возвращает данные аутентификации пользователя по его имени.
+	GetUserAuthDataByUsername(context.Context, *GetUserAuthDataByUsernameRequest) (*GetUserAuthDataByUsernameResponse, error)
+	// GetUserAuthDataByID возвращает данные аутентификации пользователя по его ID.
+	GetUserAuthDataByID(context.Context, *GetUserAuthDataByIDRequest) (*GetUserAuthDataByIDResponse, error)
+	// ChangeMyPassword изменяет пароль пользователя.
+	ChangeMyPassword(context.Context, *ChangeMyPasswordRequest) (*ChangeMyPasswordResponse, error)
+	// AdminChangePassword изменяет пароль пользователя администратором.
+	AdminChangePassword(context.Context, *AdminChangePasswordRequest) (*AdminChangePasswordResponse, error)
+	// ChangeRole изменяет роль пользователя.
+	ChangeRole(context.Context, *ChangeRoleRequest) (*ChangeRoleResponse, error)
+	// AssignPermission присваивает разрешение пользователю.
+	AssignPermission(context.Context, *AssignPermissionRequest) (*AssignPermissionResponse, error)
+	// RevokePermission отзывает разрешение пользователю.
+	RevokePermission(context.Context, *RevokePermissionRequest) (*RevokePermissionResponse, error)
 	// UpdateProfile обновляет профиль пользователя.
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*UpdateProfileResponse, error)
 	// DeleteUser удаляет пользователя по его ID.
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	// ActivateUser активирует пользователя по его ID.
 	ActivateUser(context.Context, *ActivateUserRequest) (*ActivateUserResponse, error)
+	// DeactivateUser деактивирует пользователя по его ID.
+	DeactivateUser(context.Context, *DeactivateUserRequest) (*DeactivateUserResponse, error)
 	// BanUser блокирует пользователя по его ID.
 	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
+	// UnbanUser разблокирует пользователя по его ID.
+	UnbanUser(context.Context, *UnbanUserRequest) (*UnbanUserResponse, error)
+	// ListUsers возвращает список всех пользователей.
+	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	mustEmbedUnimplementedUsersServiceServer()
 }
 
@@ -164,8 +299,26 @@ func (UnimplementedUsersServiceServer) CreateUser(context.Context, *CreateUserRe
 func (UnimplementedUsersServiceServer) GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedUsersServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ChangePassword not implemented")
+func (UnimplementedUsersServiceServer) GetUserAuthDataByUsername(context.Context, *GetUserAuthDataByUsernameRequest) (*GetUserAuthDataByUsernameResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserAuthDataByUsername not implemented")
+}
+func (UnimplementedUsersServiceServer) GetUserAuthDataByID(context.Context, *GetUserAuthDataByIDRequest) (*GetUserAuthDataByIDResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserAuthDataByID not implemented")
+}
+func (UnimplementedUsersServiceServer) ChangeMyPassword(context.Context, *ChangeMyPasswordRequest) (*ChangeMyPasswordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ChangeMyPassword not implemented")
+}
+func (UnimplementedUsersServiceServer) AdminChangePassword(context.Context, *AdminChangePasswordRequest) (*AdminChangePasswordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AdminChangePassword not implemented")
+}
+func (UnimplementedUsersServiceServer) ChangeRole(context.Context, *ChangeRoleRequest) (*ChangeRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ChangeRole not implemented")
+}
+func (UnimplementedUsersServiceServer) AssignPermission(context.Context, *AssignPermissionRequest) (*AssignPermissionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssignPermission not implemented")
+}
+func (UnimplementedUsersServiceServer) RevokePermission(context.Context, *RevokePermissionRequest) (*RevokePermissionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokePermission not implemented")
 }
 func (UnimplementedUsersServiceServer) UpdateProfile(context.Context, *UpdateProfileRequest) (*UpdateProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateProfile not implemented")
@@ -176,8 +329,17 @@ func (UnimplementedUsersServiceServer) DeleteUser(context.Context, *DeleteUserRe
 func (UnimplementedUsersServiceServer) ActivateUser(context.Context, *ActivateUserRequest) (*ActivateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ActivateUser not implemented")
 }
+func (UnimplementedUsersServiceServer) DeactivateUser(context.Context, *DeactivateUserRequest) (*DeactivateUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeactivateUser not implemented")
+}
 func (UnimplementedUsersServiceServer) BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BanUser not implemented")
+}
+func (UnimplementedUsersServiceServer) UnbanUser(context.Context, *UnbanUserRequest) (*UnbanUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnbanUser not implemented")
+}
+func (UnimplementedUsersServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
 }
 func (UnimplementedUsersServiceServer) mustEmbedUnimplementedUsersServiceServer() {}
 func (UnimplementedUsersServiceServer) testEmbeddedByValue()                      {}
@@ -236,20 +398,128 @@ func _UsersService_GetUser_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UsersService_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChangePasswordRequest)
+func _UsersService_GetUserAuthDataByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserAuthDataByUsernameRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UsersServiceServer).ChangePassword(ctx, in)
+		return srv.(UsersServiceServer).GetUserAuthDataByUsername(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UsersService_ChangePassword_FullMethodName,
+		FullMethod: UsersService_GetUserAuthDataByUsername_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServiceServer).ChangePassword(ctx, req.(*ChangePasswordRequest))
+		return srv.(UsersServiceServer).GetUserAuthDataByUsername(ctx, req.(*GetUserAuthDataByUsernameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UsersService_GetUserAuthDataByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserAuthDataByIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).GetUserAuthDataByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_GetUserAuthDataByID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).GetUserAuthDataByID(ctx, req.(*GetUserAuthDataByIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UsersService_ChangeMyPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeMyPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).ChangeMyPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_ChangeMyPassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).ChangeMyPassword(ctx, req.(*ChangeMyPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UsersService_AdminChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminChangePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).AdminChangePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_AdminChangePassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).AdminChangePassword(ctx, req.(*AdminChangePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UsersService_ChangeRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).ChangeRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_ChangeRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).ChangeRole(ctx, req.(*ChangeRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UsersService_AssignPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).AssignPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_AssignPermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).AssignPermission(ctx, req.(*AssignPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UsersService_RevokePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).RevokePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_RevokePermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).RevokePermission(ctx, req.(*RevokePermissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -308,6 +578,24 @@ func _UsersService_ActivateUser_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UsersService_DeactivateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeactivateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).DeactivateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_DeactivateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).DeactivateUser(ctx, req.(*DeactivateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UsersService_BanUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BanUserRequest)
 	if err := dec(in); err != nil {
@@ -322,6 +610,42 @@ func _UsersService_BanUser_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UsersServiceServer).BanUser(ctx, req.(*BanUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UsersService_UnbanUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnbanUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).UnbanUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_UnbanUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).UnbanUser(ctx, req.(*UnbanUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UsersService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServiceServer).ListUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UsersService_ListUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServiceServer).ListUsers(ctx, req.(*ListUsersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -342,8 +666,32 @@ var UsersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UsersService_GetUser_Handler,
 		},
 		{
-			MethodName: "ChangePassword",
-			Handler:    _UsersService_ChangePassword_Handler,
+			MethodName: "GetUserAuthDataByUsername",
+			Handler:    _UsersService_GetUserAuthDataByUsername_Handler,
+		},
+		{
+			MethodName: "GetUserAuthDataByID",
+			Handler:    _UsersService_GetUserAuthDataByID_Handler,
+		},
+		{
+			MethodName: "ChangeMyPassword",
+			Handler:    _UsersService_ChangeMyPassword_Handler,
+		},
+		{
+			MethodName: "AdminChangePassword",
+			Handler:    _UsersService_AdminChangePassword_Handler,
+		},
+		{
+			MethodName: "ChangeRole",
+			Handler:    _UsersService_ChangeRole_Handler,
+		},
+		{
+			MethodName: "AssignPermission",
+			Handler:    _UsersService_AssignPermission_Handler,
+		},
+		{
+			MethodName: "RevokePermission",
+			Handler:    _UsersService_RevokePermission_Handler,
 		},
 		{
 			MethodName: "UpdateProfile",
@@ -358,8 +706,20 @@ var UsersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UsersService_ActivateUser_Handler,
 		},
 		{
+			MethodName: "DeactivateUser",
+			Handler:    _UsersService_DeactivateUser_Handler,
+		},
+		{
 			MethodName: "BanUser",
 			Handler:    _UsersService_BanUser_Handler,
+		},
+		{
+			MethodName: "UnbanUser",
+			Handler:    _UsersService_UnbanUser_Handler,
+		},
+		{
+			MethodName: "ListUsers",
+			Handler:    _UsersService_ListUsers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -11,20 +11,58 @@ service UsersService {
   // CreateUser создает нового пользователя.
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
     option (google.api.http) = {
-      post: "/api/users/v1/users"
+      post: "/api/v1/users"
       body: "*"
     };
   }
 
   // GetUser возвращает пользователя по его ID.
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {
-    option (google.api.http) = {get: "/api/users/v1/users/{id}"};
+    option (google.api.http) = {get: "/api/v1/users/{id}"};
   }
 
-  // ChangePassword изменяет пароль пользователя.
-  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {
+  // GetUserByUsername возвращает данные аутентификации пользователя по его имени.
+  rpc GetUserAuthDataByUsername(GetUserAuthDataByUsernameRequest) returns (GetUserAuthDataByUsernameResponse);
+
+  // GetUserAuthDataByID возвращает данные аутентификации пользователя по его ID.
+  rpc GetUserAuthDataByID(GetUserAuthDataByIDRequest) returns (GetUserAuthDataByIDResponse);
+
+  // ChangeMyPassword изменяет пароль пользователя.
+  rpc ChangeMyPassword(ChangeMyPasswordRequest) returns (ChangeMyPasswordResponse) {
     option (google.api.http) = {
-      post: "/api/users/v1/users/{id}/change-password"
+      post: "/api/v1/users/me/change-password"
+      body: "*"
+    };
+  }
+
+  // AdminChangePassword изменяет пароль пользователя администратором.
+  rpc AdminChangePassword(AdminChangePasswordRequest) returns (AdminChangePasswordResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/change-password"
+      body: "*"
+    };
+  }
+
+  // ChangeRole изменяет роль пользователя.
+  rpc ChangeRole(ChangeRoleRequest) returns (ChangeRoleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/role"
+      body: "*"
+    };
+  }
+
+  // AssignPermission присваивает разрешение пользователю.
+  rpc AssignPermission(AssignPermissionRequest) returns (AssignPermissionResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/permissions/assign"
+      body: "*"
+    };
+  }
+
+  // RevokePermission отзывает разрешение пользователю.
+  rpc RevokePermission(RevokePermissionRequest) returns (RevokePermissionResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/permissions/revoke"
       body: "*"
     };
   }
@@ -32,20 +70,28 @@ service UsersService {
   // UpdateProfile обновляет профиль пользователя.
   rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {
     option (google.api.http) = {
-      put: "/api/users/v1/users/{id}/profile"
+      put: "/api/v1/users/{id}/profile"
       body: "*"
     };
   }
 
   // DeleteUser удаляет пользователя по его ID.
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
-    option (google.api.http) = {delete: "/api/users/v1/users/{id}"};
+    option (google.api.http) = {delete: "/api/v1/users/{id}"};
   }
 
   // ActivateUser активирует пользователя по его ID.
   rpc ActivateUser(ActivateUserRequest) returns (ActivateUserResponse) {
     option (google.api.http) = {
-      post: "/api/users/v1/users/{id}/activate"
+      post: "/api/v1/users/{id}/activate"
+      body: "*"
+    };
+  }
+
+  // DeactivateUser деактивирует пользователя по его ID.
+  rpc DeactivateUser(DeactivateUserRequest) returns (DeactivateUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/deactivate"
       body: "*"
     };
   }
@@ -53,9 +99,22 @@ service UsersService {
   // BanUser блокирует пользователя по его ID.
   rpc BanUser(BanUserRequest) returns (BanUserResponse) {
     option (google.api.http) = {
-      post: "/api/users/v1/users/{id}/ban"
+      post: "/api/v1/users/{id}/ban"
       body: "*"
     };
+  }
+
+  // UnbanUser разблокирует пользователя по его ID.
+  rpc UnbanUser(UnbanUserRequest) returns (UnbanUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/unban"
+      body: "*"
+    };
+  }
+
+  // ListUsers возвращает список всех пользователей.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {get: "/api/v1/users"};
   }
 }
 
@@ -71,11 +130,23 @@ enum Role {
   ROLE_ADMIN = 3;
 }
 
+// PermissionCode определяет код для прав.
+enum PermissionCode {
+  PERMISSION_UNSPECIFIED = 0;
+  PERMISSION_USERS_READ = 1;
+  PERMISSION_USERS_CREATE = 2;
+  PERMISSION_USERS_UPDATE = 3;
+  PERMISSION_USERS_BAN = 4;
+  PERMISSION_USERS_ACTIVATE = 5;
+  PERMISSION_USERS_CHANGE_ROLE = 6;
+  PERMISSION_USERS_ASSIGN_PERMISSION = 7;
+}
+
 // Permission определяет права пользователя.
 message Permission {
   string id = 1;
   // code код разрешения.
-  string code = 2;
+  PermissionCode code = 2;
   // name название разрешения.
   string name = 3;
 }
@@ -86,9 +157,23 @@ message User {
   string username = 2;
   Role role = 3;
   bool is_active = 4;
-  string created_at = 5;
-  string updated_at = 6;
-  repeated Permission permissions = 7;
+  bool is_banned = 5;
+  string ban_reason = 6;
+  string created_at = 7;
+  string updated_at = 8;
+  repeated Permission permissions = 9;
+}
+
+// UserAuthData определяет данные аутентификации пользователя.
+message UserAuthData {
+  string id = 1;
+  string username = 2;
+  string password_hash = 3;
+  Role role = 4;
+  bool is_active = 5;
+  bool is_banned = 6;
+  string ban_reason = 7;
+  repeated PermissionCode permissions = 8;
 }
 
 // CreateUserRequest определяет запрос на создание пользователя.
@@ -97,6 +182,7 @@ message CreateUserRequest {
   string password = 2;
   Role role = 3;
   bool is_active = 4;
+  repeated PermissionCode permission_codes = 5;
 }
 
 // CreateUserResponse определяет ответ на запрос на создание пользователя.
@@ -109,20 +195,84 @@ message GetUserRequest {
   string id = 1;
 }
 
+// GetUserAuthDataByIDRequest определяет запрос на получение данных аутентификации пользователя по его ID.
+message GetUserAuthDataByIDRequest {
+  string id = 1;
+}
+
+// GetUserAuthDataByIDResponse определяет ответ на запрос на получение данных аутентификации пользователя по его ID.
+message GetUserAuthDataByIDResponse {
+  UserAuthData user = 1;
+}
+
+// GetUserAuthDataByUsernameRequest определяет запрос на получение данных аутентификации пользователя по его имени.
+message GetUserAuthDataByUsernameRequest {
+  string username = 1;
+}
+
+// GetUserAuthDataByUsernameResponse определяет ответ на запрос на получение данных аутентификации пользователя по его имени.
+message GetUserAuthDataByUsernameResponse {
+  UserAuthData user = 1;
+}
+
 // GetUserResponse определяет ответ на запрос на получение пользователя.
 message GetUserResponse {
   User user = 1;
 }
 
-// ChangePasswordRequest определяет запрос на изменение пароля пользователя.
-message ChangePasswordRequest {
+// ChangeMyPasswordRequest определяет запрос на изменение пароля пользователя.
+message ChangeMyPasswordRequest {
   string id = 1;
   string old_password = 2;
   string new_password = 3;
 }
 
-// ChangePasswordResponse определяет ответ на запрос на изменение пароля пользователя.
-message ChangePasswordResponse {
+// ChangeMyPasswordResponse определяет ответ на запрос на изменение пароля пользователя.
+message ChangeMyPasswordResponse {
+  bool success = 1;
+}
+
+// AdminChangePasswordRequest определяет запрос на изменение пароля администратора.
+message AdminChangePasswordRequest {
+  string id = 1;
+  string new_password = 2;
+}
+
+// AdminChangePasswordResponse определяет ответ на запрос на изменение пароля администратора.
+message AdminChangePasswordResponse {
+  bool success = 1;
+}
+
+// ChangeRoleRequest определяет запрос на изменение роли пользователя.
+message ChangeRoleRequest {
+  string id = 1;
+  Role role = 2;
+}
+
+// ChangeRoleResponse определяет ответ на запрос на изменение роли пользователя.
+message ChangeRoleResponse {
+  bool success = 1;
+}
+
+// AssignPermissionRequest определяет запрос на назначение прав пользователю.
+message AssignPermissionRequest {
+  string id = 1;
+  PermissionCode permission = 2;
+}
+
+// AssignPermissionResponse определяет ответ на запрос на назначение прав пользователю.
+message AssignPermissionResponse {
+  bool success = 1;
+}
+
+// RevokePermissionRequest определяет запрос на отзыв прав пользователю.
+message RevokePermissionRequest {
+  string id = 1;
+  PermissionCode permission = 2;
+}
+
+// RevokePermissionResponse определяет ответ на запрос на отзыв прав пользователю.
+message RevokePermissionResponse {
   bool success = 1;
 }
 
@@ -157,12 +307,47 @@ message ActivateUserResponse {
   bool success = 1;
 }
 
+// DeactivateUserRequest определяет запрос на деактивацию пользователя.
+message DeactivateUserRequest {
+  string id = 1;
+}
+
+// DeactivateUserResponse определяет ответ на запрос на деактивацию пользователя.
+message DeactivateUserResponse {
+  bool success = 1;
+}
+
 // BanUserRequest определяет запрос на блокирование пользователя.
 message BanUserRequest {
   string id = 1;
+  string reason = 2;
+}
+
+// UnbanUserRequest определяет запрос на разблокирование пользователя.
+message UnbanUserRequest {
+  string id = 1;
+}
+
+// UnbanUserResponse определяет ответ на запрос на разблокирование пользователя.
+message UnbanUserResponse {
+  bool success = 1;
 }
 
 // BanUserResponse определяет ответ на запрос на блокирование пользователя.
 message BanUserResponse {
   bool success = 1;
+}
+
+// ListUsersRequest определяет запрос на получение списка пользователей.
+message ListUsersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  Role role = 3;
+  bool only_active = 4;
+}
+
+// ListUsersResponse определяет ответ на запрос на получение списка пользователей.
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
 }

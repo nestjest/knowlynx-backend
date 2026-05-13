@@ -84,6 +84,38 @@
         ]
       }
     },
+    "/api/v1/auth/me": {
+      "post": {
+        "operationId": "AuthService_GetMe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetMeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetMeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
     "/api/v1/auth/refresh": {
       "post": {
         "summary": "RefreshToken обновляет токен доступа с помощью токена обновления.",
@@ -148,6 +180,17 @@
         }
       }
     },
+    "v1GetMeRequest": {
+      "type": "object"
+    },
+    "v1GetMeResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/v1User"
+        }
+      }
+    },
     "v1LoginRequest": {
       "type": "object",
       "properties": {
@@ -185,10 +228,42 @@
       "type": "object",
       "properties": {
         "success": {
-          "type": "string"
+          "type": "boolean"
         }
       },
       "description": "LogoutResponse содержит результат завершения сеанса."
+    },
+    "v1Permission": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "code": {
+          "$ref": "#/definitions/v1PermissionCode",
+          "description": "code код разрешения."
+        },
+        "name": {
+          "type": "string",
+          "description": "name название разрешения."
+        }
+      },
+      "description": "Permission определяет права пользователя."
+    },
+    "v1PermissionCode": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_UNSPECIFIED",
+        "PERMISSION_USERS_READ",
+        "PERMISSION_USERS_CREATE",
+        "PERMISSION_USERS_UPDATE",
+        "PERMISSION_USERS_BAN",
+        "PERMISSION_USERS_ACTIVATE",
+        "PERMISSION_USERS_CHANGE_ROLE",
+        "PERMISSION_USERS_ASSIGN_PERMISSION"
+      ],
+      "default": "PERMISSION_UNSPECIFIED",
+      "description": "PermissionCode определяет код для прав."
     },
     "v1RefreshTokenRequest": {
       "type": "object",
@@ -210,6 +285,54 @@
         }
       },
       "description": "RefreshTokenResponse содержит обновленные токены доступа и обновления."
+    },
+    "v1Role": {
+      "type": "string",
+      "enum": [
+        "ROLE_UNSPECIFIED",
+        "ROLE_STUDENT",
+        "ROLE_TEACHER",
+        "ROLE_ADMIN"
+      ],
+      "default": "ROLE_UNSPECIFIED",
+      "description": "Role определяет роль пользователя.\n\n - ROLE_UNSPECIFIED: ROLE_UNSPECIFIED указывает на неопределенную роль.\n - ROLE_STUDENT: ROLE_STUDENT указывает на роль студента.\n - ROLE_TEACHER: ROLE_TEACHER указывает на роль преподавателя.\n - ROLE_ADMIN: ROLE_ADMIN указывает на роль администратора."
+    },
+    "v1User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/v1Role"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "isBanned": {
+          "type": "boolean"
+        },
+        "banReason": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Permission"
+          }
+        }
+      },
+      "description": "User определяет пользователя."
     }
   }
 }

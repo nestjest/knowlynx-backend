@@ -16,7 +16,64 @@
     "application/json"
   ],
   "paths": {
-    "/api/users/v1/users": {
+    "/api/v1/users": {
+      "get": {
+        "summary": "ListUsers возвращает список всех пользователей.",
+        "operationId": "UsersService_ListUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "role",
+            "description": " - ROLE_UNSPECIFIED: ROLE_UNSPECIFIED указывает на неопределенную роль.\n - ROLE_STUDENT: ROLE_STUDENT указывает на роль студента.\n - ROLE_TEACHER: ROLE_TEACHER указывает на роль преподавателя.\n - ROLE_ADMIN: ROLE_ADMIN указывает на роль администратора.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "ROLE_UNSPECIFIED",
+              "ROLE_STUDENT",
+              "ROLE_TEACHER",
+              "ROLE_ADMIN"
+            ],
+            "default": "ROLE_UNSPECIFIED"
+          },
+          {
+            "name": "onlyActive",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "UsersService"
+        ]
+      },
       "post": {
         "summary": "CreateUser создает нового пользователя.",
         "operationId": "UsersService_CreateUser",
@@ -50,7 +107,41 @@
         ]
       }
     },
-    "/api/users/v1/users/{id}": {
+    "/api/v1/users/me/change-password": {
+      "post": {
+        "summary": "ChangeMyPassword изменяет пароль пользователя.",
+        "operationId": "UsersService_ChangeMyPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ChangeMyPasswordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ChangeMyPasswordRequest определяет запрос на изменение пароля пользователя.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ChangeMyPasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UsersService"
+        ]
+      }
+    },
+    "/api/v1/users/{id}": {
       "get": {
         "summary": "GetUser возвращает пользователя по его ID.",
         "operationId": "UsersService_GetUser",
@@ -110,7 +201,7 @@
         ]
       }
     },
-    "/api/users/v1/users/{id}/activate": {
+    "/api/v1/users/{id}/activate": {
       "post": {
         "summary": "ActivateUser активирует пользователя по его ID.",
         "operationId": "UsersService_ActivateUser",
@@ -149,7 +240,7 @@
         ]
       }
     },
-    "/api/users/v1/users/{id}/ban": {
+    "/api/v1/users/{id}/ban": {
       "post": {
         "summary": "BanUser блокирует пользователя по его ID.",
         "operationId": "UsersService_BanUser",
@@ -188,15 +279,15 @@
         ]
       }
     },
-    "/api/users/v1/users/{id}/change-password": {
+    "/api/v1/users/{id}/change-password": {
       "post": {
-        "summary": "ChangePassword изменяет пароль пользователя.",
-        "operationId": "UsersService_ChangePassword",
+        "summary": "AdminChangePassword изменяет пароль пользователя администратором.",
+        "operationId": "UsersService_AdminChangePassword",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ChangePasswordResponse"
+              "$ref": "#/definitions/v1AdminChangePasswordResponse"
             }
           },
           "default": {
@@ -218,7 +309,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/UsersServiceChangePasswordBody"
+              "$ref": "#/definitions/UsersServiceAdminChangePasswordBody"
             }
           }
         ],
@@ -227,7 +318,124 @@
         ]
       }
     },
-    "/api/users/v1/users/{id}/profile": {
+    "/api/v1/users/{id}/deactivate": {
+      "post": {
+        "summary": "DeactivateUser деактивирует пользователя по его ID.",
+        "operationId": "UsersService_DeactivateUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DeactivateUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UsersServiceDeactivateUserBody"
+            }
+          }
+        ],
+        "tags": [
+          "UsersService"
+        ]
+      }
+    },
+    "/api/v1/users/{id}/permissions/assign": {
+      "post": {
+        "summary": "AssignPermission присваивает разрешение пользователю.",
+        "operationId": "UsersService_AssignPermission",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AssignPermissionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UsersServiceAssignPermissionBody"
+            }
+          }
+        ],
+        "tags": [
+          "UsersService"
+        ]
+      }
+    },
+    "/api/v1/users/{id}/permissions/revoke": {
+      "post": {
+        "summary": "RevokePermission отзывает разрешение пользователю.",
+        "operationId": "UsersService_RevokePermission",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RevokePermissionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UsersServiceRevokePermissionBody"
+            }
+          }
+        ],
+        "tags": [
+          "UsersService"
+        ]
+      }
+    },
+    "/api/v1/users/{id}/profile": {
       "put": {
         "summary": "UpdateProfile обновляет профиль пользователя.",
         "operationId": "UsersService_UpdateProfile",
@@ -265,6 +473,84 @@
           "UsersService"
         ]
       }
+    },
+    "/api/v1/users/{id}/role": {
+      "post": {
+        "summary": "ChangeRole изменяет роль пользователя.",
+        "operationId": "UsersService_ChangeRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ChangeRoleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UsersServiceChangeRoleBody"
+            }
+          }
+        ],
+        "tags": [
+          "UsersService"
+        ]
+      }
+    },
+    "/api/v1/users/{id}/unban": {
+      "post": {
+        "summary": "UnbanUser разблокирует пользователя по его ID.",
+        "operationId": "UsersService_UnbanUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UnbanUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UsersServiceUnbanUserBody"
+            }
+          }
+        ],
+        "tags": [
+          "UsersService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -272,21 +558,58 @@
       "type": "object",
       "description": "ActivateUserRequest определяет запрос на активацию пользователя."
     },
-    "UsersServiceBanUserBody": {
-      "type": "object",
-      "description": "BanUserRequest определяет запрос на блокирование пользователя."
-    },
-    "UsersServiceChangePasswordBody": {
+    "UsersServiceAdminChangePasswordBody": {
       "type": "object",
       "properties": {
-        "oldPassword": {
-          "type": "string"
-        },
         "newPassword": {
           "type": "string"
         }
       },
-      "description": "ChangePasswordRequest определяет запрос на изменение пароля пользователя."
+      "description": "AdminChangePasswordRequest определяет запрос на изменение пароля администратора."
+    },
+    "UsersServiceAssignPermissionBody": {
+      "type": "object",
+      "properties": {
+        "permission": {
+          "$ref": "#/definitions/v1PermissionCode"
+        }
+      },
+      "description": "AssignPermissionRequest определяет запрос на назначение прав пользователю."
+    },
+    "UsersServiceBanUserBody": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      },
+      "description": "BanUserRequest определяет запрос на блокирование пользователя."
+    },
+    "UsersServiceChangeRoleBody": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "$ref": "#/definitions/v1Role"
+        }
+      },
+      "description": "ChangeRoleRequest определяет запрос на изменение роли пользователя."
+    },
+    "UsersServiceDeactivateUserBody": {
+      "type": "object",
+      "description": "DeactivateUserRequest определяет запрос на деактивацию пользователя."
+    },
+    "UsersServiceRevokePermissionBody": {
+      "type": "object",
+      "properties": {
+        "permission": {
+          "$ref": "#/definitions/v1PermissionCode"
+        }
+      },
+      "description": "RevokePermissionRequest определяет запрос на отзыв прав пользователю."
+    },
+    "UsersServiceUnbanUserBody": {
+      "type": "object",
+      "description": "UnbanUserRequest определяет запрос на разблокирование пользователя."
     },
     "UsersServiceUpdateProfileBody": {
       "type": "object",
@@ -334,6 +657,24 @@
       },
       "description": "ActivateUserResponse определяет ответ на запрос на активацию пользователя."
     },
+    "v1AdminChangePasswordResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "description": "AdminChangePasswordResponse определяет ответ на запрос на изменение пароля администратора."
+    },
+    "v1AssignPermissionResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "description": "AssignPermissionResponse определяет ответ на запрос на назначение прав пользователю."
+    },
     "v1BanUserResponse": {
       "type": "object",
       "properties": {
@@ -343,14 +684,38 @@
       },
       "description": "BanUserResponse определяет ответ на запрос на блокирование пользователя."
     },
-    "v1ChangePasswordResponse": {
+    "v1ChangeMyPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "oldPassword": {
+          "type": "string"
+        },
+        "newPassword": {
+          "type": "string"
+        }
+      },
+      "description": "ChangeMyPasswordRequest определяет запрос на изменение пароля пользователя."
+    },
+    "v1ChangeMyPasswordResponse": {
       "type": "object",
       "properties": {
         "success": {
           "type": "boolean"
         }
       },
-      "description": "ChangePasswordResponse определяет ответ на запрос на изменение пароля пользователя."
+      "description": "ChangeMyPasswordResponse определяет ответ на запрос на изменение пароля пользователя."
+    },
+    "v1ChangeRoleResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "description": "ChangeRoleResponse определяет ответ на запрос на изменение роли пользователя."
     },
     "v1CreateUserRequest": {
       "type": "object",
@@ -366,6 +731,12 @@
         },
         "isActive": {
           "type": "boolean"
+        },
+        "permissionCodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PermissionCode"
+          }
         }
       },
       "description": "CreateUserRequest определяет запрос на создание пользователя."
@@ -378,6 +749,15 @@
         }
       },
       "description": "CreateUserResponse определяет ответ на запрос на создание пользователя."
+    },
+    "v1DeactivateUserResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "description": "DeactivateUserResponse определяет ответ на запрос на деактивацию пользователя."
     },
     "v1DeleteUserResponse": {
       "type": "object",
@@ -397,6 +777,23 @@
       },
       "description": "GetUserResponse определяет ответ на запрос на получение пользователя."
     },
+    "v1ListUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1User"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "ListUsersResponse определяет ответ на запрос на получение списка пользователей."
+    },
     "v1Permission": {
       "type": "object",
       "properties": {
@@ -404,7 +801,7 @@
           "type": "string"
         },
         "code": {
-          "type": "string",
+          "$ref": "#/definitions/v1PermissionCode",
           "description": "code код разрешения."
         },
         "name": {
@@ -413,6 +810,30 @@
         }
       },
       "description": "Permission определяет права пользователя."
+    },
+    "v1PermissionCode": {
+      "type": "string",
+      "enum": [
+        "PERMISSION_UNSPECIFIED",
+        "PERMISSION_USERS_READ",
+        "PERMISSION_USERS_CREATE",
+        "PERMISSION_USERS_UPDATE",
+        "PERMISSION_USERS_BAN",
+        "PERMISSION_USERS_ACTIVATE",
+        "PERMISSION_USERS_CHANGE_ROLE",
+        "PERMISSION_USERS_ASSIGN_PERMISSION"
+      ],
+      "default": "PERMISSION_UNSPECIFIED",
+      "description": "PermissionCode определяет код для прав."
+    },
+    "v1RevokePermissionResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "description": "RevokePermissionResponse определяет ответ на запрос на отзыв прав пользователю."
     },
     "v1Role": {
       "type": "string",
@@ -424,6 +845,15 @@
       ],
       "default": "ROLE_UNSPECIFIED",
       "description": "Role определяет роль пользователя.\n\n - ROLE_UNSPECIFIED: ROLE_UNSPECIFIED указывает на неопределенную роль.\n - ROLE_STUDENT: ROLE_STUDENT указывает на роль студента.\n - ROLE_TEACHER: ROLE_TEACHER указывает на роль преподавателя.\n - ROLE_ADMIN: ROLE_ADMIN указывает на роль администратора."
+    },
+    "v1UnbanUserResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      },
+      "description": "UnbanUserResponse определяет ответ на запрос на разблокирование пользователя."
     },
     "v1UpdateProfileResponse": {
       "type": "object",
@@ -448,6 +878,12 @@
         },
         "isActive": {
           "type": "boolean"
+        },
+        "isBanned": {
+          "type": "boolean"
+        },
+        "banReason": {
+          "type": "string"
         },
         "createdAt": {
           "type": "string"
