@@ -22,7 +22,6 @@ func main() {
 	if err := run(); err != nil {
 		log.Fatalf("gateway failed to run: %v", err)
 	}
-	//TODO: Написать тесты для HTTP Gateway.
 }
 
 func run() error {
@@ -94,12 +93,4 @@ func run() error {
 
 	return nil
 
-}
-
-func envOrDefault(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-
-	return fallback
 }
