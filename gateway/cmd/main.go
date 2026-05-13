@@ -10,7 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"gateway/internal/clients"
+	"gateway/internal/config"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 )
 
@@ -19,18 +22,24 @@ func main() {
 	if err := run(); err != nil {
 		log.Fatalf("gateway failed to run: %v", err)
 	}
-	//TODO: Инициализировать методы микросервисов.
 	//TODO: Написать тесты для HTTP Gateway.
 }
 
 func run() error {
+
+	cfg := config.MustLoad()
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	defer cancel()
 
 	mux := runtime.NewServeMux()
 
-	if err := clients.RegisterAuthHandler(ctx, mux, authServiceAddr); err != nil {
+	if err := clients.RegisterAuthHandler(ctx, mux, cfg.AuthService.Addr); err != nil {
+		return err
+	}
+
+	if err := clients.RegisterUsersHandler(ctx, mux, cfg.UsersService.Addr); err != nil {
 		return err
 	}
 
@@ -42,14 +51,14 @@ func run() error {
 	}).Handler(mux)
 
 	server := &http.Server{
-		Addr:              httpAddr,
+		Addr:              cfg.Server.HttpAddr,
 		Handler:           handler,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadHeaderTimeout: cfg.Server.RHT,
 	}
 
 	log.Println("Gatewat started on :8080")
-	log.Println("Proxing request to gRPC auth service:", authServiceAddr)
-	log.Println("Proxing request to gRPC users service:", usersServiceAddr)
+	log.Println("Proxing request to gRPC auth service:", cfg.AuthService.Addr)
+	log.Println("Proxing request to gRPC users service:", cfg.UsersService.Addr)
 
 	serverErrors := make(chan error, 1)
 
@@ -85,4 +94,12 @@ func run() error {
 
 	return nil
 
+}
+
+func envOrDefault(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+
+	return fallback
 }
