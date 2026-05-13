@@ -1,1 +1,81 @@
-// TODO: Прописать контракты для микросервисов.
+syntax = "proto3";
+
+package auth.v1;
+
+import "google/api/annotations.proto";
+import "users/v1/users.proto";
+
+option go_package = "contracts/gen/go/proto/auth/v1;authv1";
+
+// AuthService предоставляет услуги аутентификации.
+service AuthService {
+  // Login аутентифицирует пользователя и возвращает токены.
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login"
+      body: "*"
+    };
+  }
+
+  // RefreshToken обновляет токен доступа с помощью токена обновления.
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/refresh"
+      body: "*"
+    };
+  }
+
+  // Logout завершает сеанс пользователя.
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/logout"
+      body: "*"
+    };
+  }
+
+  rpc GetMe(GetMeRequest) returns (GetMeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/me"
+      body: "*"
+    };
+  }
+}
+
+// LoginRequest содержит данные для аутентификации.
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+// LoginResponse содержит токены доступа и обновления.
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// RefreshTokenRequest содержит токен обновления.
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+// RefreshTokenResponse содержит обновленные токены доступа и обновления.
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// LogoutRequest содержит токен обновления.
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+// LogoutResponse содержит результат завершения сеанса.
+message LogoutResponse {
+  bool success = 1;
+}
+
+message GetMeRequest {}
+
+message GetMeResponse {
+  users.v1.User user = 1;
+}
