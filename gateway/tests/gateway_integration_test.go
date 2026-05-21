@@ -13,10 +13,9 @@ import (
 
 	authv1 "contracts/gen/go/proto/auth/v1"
 	usersv1 "contracts/gen/go/proto/users/v1"
-	"gateway/internal/clients"
+	"gateway/internal/config"
+	gatewayserver "gateway/internal/server"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/rs/cors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -476,20 +475,19 @@ func startGatewayTestServer(t *testing.T, authSrv *fakeAuthServer, usersSrv *fak
 	})
 	t.Cleanup(stopUsers)
 
-	mux := runtime.NewServeMux()
-	if err := clients.RegisterAuthHandler(context.Background(), mux, authAddr); err != nil {
-		t.Fatalf("RegisterAuthHandler returned error: %v", err)
-	}
-	if err := clients.RegisterUsersHandler(context.Background(), mux, usersAddr); err != nil {
-		t.Fatalf("RegisterUsersHandler returned error: %v", err)
+	cfg := config.Config{
+		AuthService: config.AuthServiceConfig{
+			Addr: authAddr,
+		},
+		UsersService: config.UsersServiceConfig{
+			Addr: usersAddr,
+		},
 	}
 
-	handler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type"},
-		AllowCredentials: true,
-	}).Handler(mux)
+	handler, err := gatewayserver.NewHandler(context.Background(), cfg)
+	if err != nil {
+		t.Fatalf("NewHandler returned error: %v", err)
+	}
 
 	httpServer := httptest.NewServer(handler)
 	t.Cleanup(httpServer.Close)
