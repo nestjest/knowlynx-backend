@@ -13,6 +13,11 @@ import (
 )
 
 func NewHandler(ctx context.Context, cfg config.Config) (http.Handler, error) {
+	corsConfig := cfg.CORS.WithDefaults()
+	if err := corsConfig.Validate(); err != nil {
+		return nil, fmt.Errorf("validate cors config: %w", err)
+	}
+
 	mux := runtime.NewServeMux()
 
 	if err := clients.RegisterAuthHandler(ctx, mux, cfg.AuthService.Addr); err != nil {
@@ -24,9 +29,9 @@ func NewHandler(ctx context.Context, cfg config.Config) (http.Handler, error) {
 	}
 
 	handler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowedOrigins:   corsConfig.AllowedOrigins,
+		AllowedMethods:   corsConfig.AllowedMethods,
+		AllowedHeaders:   corsConfig.AllowedHeaders,
 		AllowCredentials: true,
 	}).Handler(mux)
 
