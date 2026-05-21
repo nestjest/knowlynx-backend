@@ -26,7 +26,10 @@ func main() {
 
 func run() error {
 
-	cfg := config.MustLoad()
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 

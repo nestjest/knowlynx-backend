@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"os"
-	"os/exec"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -116,13 +115,16 @@ func TestHTTPHeadersToMetadata(t *testing.T) {
 	}
 }
 
-func TestConfigMustLoadSuccess(t *testing.T) {
+func TestConfigLoadSuccess(t *testing.T) {
 	t.Setenv("SERVER_ADDR", "")
 	t.Setenv("RHT", "3s")
 	t.Setenv("AUTH_SERVICE_ADDR", "127.0.0.1:10001")
 	t.Setenv("USERS_SERVICE_ADDR", "127.0.0.1:10002")
 
-	cfg := config.MustLoad()
+	cfg, err := config.Load()
+	if err != nil {
+		t.Fatalf("Load returned error: %v", err)
+	}
 	if cfg.Server.HttpAddr != ":8080" {
 		t.Fatalf("Server.HttpAddr = %q, want %q", cfg.Server.HttpAddr, ":8080")
 	}
@@ -137,43 +139,46 @@ func TestConfigMustLoadSuccess(t *testing.T) {
 	}
 }
 
-func TestConfigMustLoadFatalPaths(t *testing.T) {
-	t.Parallel()
+func TestConfigLoadErrors(t *testing.T) {
+	tests := []struct {
+		name       string
+		setupEnv   func(t *testing.T)
+		wantErrMsg string
+	}{
+		{
+			name: "missing auth service addr",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("AUTH_SERVICE_ADDR", "")
+			},
+			wantErrMsg: "env var AUTH_SERVICE_ADDR is required but not set",
+		},
+		{
+			name: "invalid read header timeout",
+			setupEnv: func(t *testing.T) {
+				t.Setenv("RHT", "not-a-duration")
+			},
+			wantErrMsg: "invalid duration for RHT",
+		},
+	}
 
-	for _, name := range []string{"missing-auth", "invalid-rht"} {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("SERVER_ADDR", "")
+			t.Setenv("RHT", "2s")
+			t.Setenv("AUTH_SERVICE_ADDR", "127.0.0.1:10001")
+			t.Setenv("USERS_SERVICE_ADDR", "127.0.0.1:10002")
+			tt.setupEnv(t)
 
-			cmd := exec.Command(os.Args[0], "-test.run=TestConfigMustLoadFatalSubprocess")
-			cmd.Env = append(os.Environ(),
-				"TEST_CONFIG_FATAL="+name,
-				"SERVER_ADDR=",
-				"RHT=2s",
-				"AUTH_SERVICE_ADDR=127.0.0.1:10001",
-				"USERS_SERVICE_ADDR=127.0.0.1:10002",
-			)
-			if name == "missing-auth" {
-				cmd.Env = append(cmd.Env, "AUTH_SERVICE_ADDR=")
-			}
-			if name == "invalid-rht" {
-				cmd.Env = append(cmd.Env, "RHT=not-a-duration")
-			}
-
-			err := cmd.Run()
+			cfg, err := config.Load()
 			if err == nil {
-				t.Fatalf("config.MustLoad subprocess exited successfully, want failure")
+				t.Fatalf("Load returned nil error, want %q", tt.wantErrMsg)
 			}
-			if exitErr, ok := err.(*exec.ExitError); !ok || exitErr.ExitCode() == 0 {
-				t.Fatalf("subprocess error = %v, want non-zero exit", err)
+			if cfg != nil {
+				t.Fatalf("Load returned config on error: %+v", cfg)
+			}
+			if !strings.Contains(err.Error(), tt.wantErrMsg) {
+				t.Fatalf("Load error = %q, want to contain %q", err.Error(), tt.wantErrMsg)
 			}
 		})
 	}
-}
-
-func TestConfigMustLoadFatalSubprocess(t *testing.T) {
-	if os.Getenv("TEST_CONFIG_FATAL") == "" {
-		t.Skip("helper test")
-	}
-
-	config.MustLoad()
 }

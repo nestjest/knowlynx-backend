@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -27,23 +28,38 @@ type UsersServiceConfig struct {
 	Addr string
 }
 
-func MustLoad() *Config {
+func Load() (*Config, error) {
 	if err := godotenv.Load(); err != nil {
 		log.Println(".env file not foun, using system env")
+	}
+
+	rht, err := parseDuration("RHT")
+	if err != nil {
+		return nil, err
+	}
+
+	authServiceAddr, err := requiredEnv("AUTH_SERVICE_ADDR")
+	if err != nil {
+		return nil, err
+	}
+
+	usersServiceAddr, err := requiredEnv("USERS_SERVICE_ADDR")
+	if err != nil {
+		return nil, err
 	}
 
 	return &Config{
 		Server: ServerConfig{
 			HttpAddr: getEnv("SERVER_ADDR", ":8080"),
-			RHT:      mustParseDuration("RHT"),
+			RHT:      rht,
 		},
 		AuthService: AuthServiceConfig{
-			Addr: mustGetEnv("AUTH_SERVICE_ADDR"),
+			Addr: authServiceAddr,
 		},
 		UsersService: UsersServiceConfig{
-			Addr: mustGetEnv("USERS_SERVICE_ADDR"),
+			Addr: usersServiceAddr,
 		},
-	}
+	}, nil
 }
 
 func getEnv(key, defaultValue string) string {
@@ -54,21 +70,24 @@ func getEnv(key, defaultValue string) string {
 	return val
 }
 
-func mustGetEnv(key string) string {
+func requiredEnv(key string) (string, error) {
 	val := os.Getenv(key)
 	if val == "" {
-		log.Fatalf("env var %s is required but not set", key)
+		return "", fmt.Errorf("env var %s is required but not set", key)
 	}
-	return val
+	return val, nil
 }
 
-func mustParseDuration(key string) time.Duration {
-	val := mustGetEnv(key)
-	d, err := time.ParseDuration(val)
-
+func parseDuration(key string) (time.Duration, error) {
+	val, err := requiredEnv(key)
 	if err != nil {
-		log.Fatalf("invalid duration for %s: %v", key, err)
+		return 0, err
 	}
 
-	return d
+	d, err := time.ParseDuration(val)
+	if err != nil {
+		return 0, fmt.Errorf("invalid duration for %s: %w", key, err)
+	}
+
+	return d, nil
 }
